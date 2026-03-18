@@ -29,10 +29,10 @@
 		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
 		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,readonly,type=bind"
 	],
-	"name": "Elasticsearch integration development",
+	"name": "OpenSearch integration development",
 	"portsAttributes": {
 		"5601": {
-			"label": "Kibana",
+			"label": "Dashboards",
 			"onAutoForward": "notify"
 		},
 		"8123": {
@@ -40,7 +40,7 @@
 			"onAutoForward": "notify"
 		},
 		"9200": {
-			"label": "Elasticsearch",
+			"label": "OpenSearch",
 			"onAutoForward": "notify"
 		}
 	},
