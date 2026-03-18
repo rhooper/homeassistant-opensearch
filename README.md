@@ -1,11 +1,11 @@
 OpenSearch Component for Home-Assistant
-![build](https://github.com/legrego/homeassistant-opensearch/actions/workflows/cron.yml/badge.svg)
+![build](https://github.com/rhooper/homeassistant-opensearch/actions/workflows/cron.yml/badge.svg)
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 =====
 
 Publish Home Assistant events to your [OpenSearch](https://opensearch.org) cluster!
 
-Documentation: https://legrego.github.io/homeassistant-opensearch/
+Documentation: https://rhooper.github.io/homeassistant-opensearch/
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ Documentation: https://legrego.github.io/homeassistant-opensearch/
 
 ## Getting started
 
-Visit our documentation site for instructions on [installing](https://legrego.github.io/homeassistant-opensearch/install/), [configuring](https://legrego.github.io/homeassistant-opensearch/configure/), and [using](https://legrego.github.io/homeassistant-opensearch/using_kibana/) this component.
+Visit our documentation site for instructions on [installing](https://rhooper.github.io/homeassistant-opensearch/install/), [configuring](https://rhooper.github.io/homeassistant-opensearch/configure/), and [using](https://rhooper.github.io/homeassistant-opensearch/using_kibana/) this component.
 
 ## Features
 
@@ -43,7 +43,7 @@ Visualize and alert on data from your weather station:
 
 ### Additional examples
 
-Some usage examples inspired by [real users](https://github.com/legrego/homeassistant-opensearch/issues/203):
+Some usage examples inspired by [real users of the original Elasticsearch integration](https://github.com/legrego/homeassistant-elasticsearch/issues/203), whose techniques can also inspire OpenSearch users:
 
 - Utilizing a Raspberry Pi in [kiosk mode](https://www.raspberrypi.com/tutorials/how-to-use-a-raspberry-pi-in-kiosk-mode/) with a 15" display, the homeassistant-opensearch integration enables the creation of rotating fullscreen OpenSearch Dashboards visualizations. Those dashboards display metrics collected from various Home Assistant integrations, offering visually dynamic and informative dashboards for monitoring smart home data.
 - To address temperature maintenance issues in refrigerators and freezers, temperature sensors in each appliance report data to Home Assistant, which is then published to OpenSearch. OpenSearch Dashboards' [alerting framework](https://opensearch.org/docs/latest/observing-your-data/alerting/index/) is employed to set up rules that notify the user if temperatures deviate unfavorably for an extended period. The OpenSearch rule engine and aggregations simplify the monitoring process for this specific use case.

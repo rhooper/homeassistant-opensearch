@@ -109,7 +109,7 @@ Visualize and alert on data from your weather station:
 
 ### Additional examples
 
-Some usage examples inspired by [real users](https://github.com/legrego/homeassistant-opensearch/issues/203):
+Some usage examples inspired by [real users of the original Elasticsearch integration](https://github.com/legrego/homeassistant-elasticsearch/issues/203), whose techniques can also inspire OpenSearch users:
 
 - Utilizing a Raspberry Pi in [kiosk mode](https://www.raspberrypi.com/tutorials/how-to-use-a-raspberry-pi-in-kiosk-mode/) with a 15" display, the homeassistant-opensearch integration enables the creation of rotating fullscreen OpenSearch Dashboards visualizations. Those dashboards display metrics collected from various Home Assistant integrations, offering visually dynamic and informative dashboards for monitoring smart home data.
 - To address temperature maintenance issues in refrigerators and freezers, temperature sensors in each appliance report data to Home Assistant, which is then published to OpenSearch. OpenSearch Dashboards' [alerting framework](https://opensearch.org/docs/latest/observing-your-data/alerting/index/) is employed to set up rules that notify the user if temperatures deviate unfavorably for an extended period. The OpenSearch rule engine and aggregations simplify the monitoring process for this specific use case.

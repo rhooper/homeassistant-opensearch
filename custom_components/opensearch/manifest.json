@@ -9,9 +9,9 @@
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/legrego/homeassistant-opensearch",
+  "documentation": "https://github.com/rhooper/homeassistant-opensearch",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/legrego/homeassistant-opensearch/issues",
+  "issue_tracker": "https://github.com/rhooper/homeassistant-opensearch/issues",
   "loggers": [
     "custom_components.opensearch"
   ],
