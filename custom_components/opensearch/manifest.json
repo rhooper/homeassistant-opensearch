@@ -5,7 +5,7 @@
     "hassio"
   ],
   "codeowners": [
-    "@legrego"
+    "@rhooper"
   ],
   "config_flow": true,
   "dependencies": [],
