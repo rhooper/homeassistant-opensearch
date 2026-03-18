@@ -16,7 +16,7 @@ This means that home-assistant was not able to download the required `opensearch
 
 **Solution**: Restart home assistant
 
-More info: https://github.com/legrego/homeassistant-opensearch/issues/23
+More info: https://github.com/rhooper/homeassistant-opensearch/issues/23
 
 ### Certificate verify failed
 
@@ -26,6 +26,6 @@ When connecting to a TLS protected cluster, you might receive the following erro
 ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:720)
 ```
 
-This generally means that the certificate is not trusted by the home-assistant runtime. Please ensure your certificates are setup correctly. To skip certificate verification, see setup instructions [here](https://github.com/legrego/homeassistant-opensearch/pull/36)
+This generally means that the certificate is not trusted by the home-assistant runtime. Please ensure your certificates are setup correctly. To skip certificate verification, see setup instructions [here](https://github.com/rhooper/homeassistant-opensearch/pull/36)
 
-More info: https://github.com/legrego/homeassistant-opensearch/issues/33
+More info: https://github.com/rhooper/homeassistant-opensearch/issues/33
