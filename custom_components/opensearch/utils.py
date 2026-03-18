@@ -7,12 +7,20 @@ from typing import Any
 from custom_components.opensearch import const as compconst
 
 
+def _should_skip(v: Any, skip_values: list[Any]) -> bool:
+    """Check if a value should be skipped, handling types like numpy arrays."""
+    try:
+        return v in skip_values
+    except (ValueError, TypeError):
+        return False
+
+
 def skip_dict_values(d: dict, skip_values: list[Any]) -> dict:
     """Trim keys with values that match skip_values. Works best on a flattened dict."""
     if skip_values == ():
         return d
 
-    return {k: v for k, v in d.items() if v not in skip_values}
+    return {k: v for k, v in d.items() if not _should_skip(v, skip_values)}
 
 
 def keep_dict_keys(d: dict, keys: list[str] | None = None, prefixes: list[str] | None = None) -> dict:
