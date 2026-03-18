@@ -1,1 +1,1 @@
-"""Test utils for Elasticsearch custom component tests."""
+"""Test utils for OpenSearch custom component tests."""

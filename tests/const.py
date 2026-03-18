@@ -125,8 +125,8 @@ ENTITY_STATE_ATTRIBUTE_COMBINATION_IDS = [
     "With comprehensive compliant and non-compliant attributes",
 ]
 
-CONFIG_ENTRY_DATA_URL = "https://mock_es_integration:9200"
-CONFIG_ENTRY_DATA_URL_INSECURE = "http://mock_es_integration:9200"
+CONFIG_ENTRY_DATA_URL = "https://mock_os_integration:9200"
+CONFIG_ENTRY_DATA_URL_INSECURE = "http://mock_os_integration:9200"
 CONFIG_ENTRY_DATA_TIMEOUT = 30
 CONFIG_ENTRY_DATA_VERIFY_SSL = False
 
@@ -321,7 +321,7 @@ MANAGER_STATIC_FIELDS = {
     "agent.version": "1.0.0",
     "host.architecture": "x86",
     "host.os.name": "Linux",
-    "host.hostname": "my_es_host",
+    "host.hostname": "my_os_host",
     "tags": ["tag1", "tag2"],
     "host.location": [MOCK_LOCATION_SERVER_LON, MOCK_LOCATION_SERVER_LAT],
 }

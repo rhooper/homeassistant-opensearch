@@ -14,7 +14,7 @@ from homeassistant.util.ssl import client_context
 from opensearchpy import AsyncOpenSearch
 from opensearchpy.helpers import async_streaming_bulk
 
-from custom_components.opensearch.const import ES_CHECK_PERMISSIONS_DATASTREAM
+from custom_components.opensearch.const import OS_CHECK_PERMISSIONS_DATASTREAM
 from custom_components.opensearch.encoder import Serializer
 from custom_components.opensearch.errors import (
     AuthenticationRequired,
@@ -23,8 +23,8 @@ from custom_components.opensearch.errors import (
     ServerError,
     UntrustedCertificate,
 )
-from custom_components.opensearch.es_gateway import (
-    ElasticsearchGateway,
+from custom_components.opensearch.os_gateway import (
+    OpenSearchGateway,
     GatewaySettings,
 )
 
@@ -70,7 +70,7 @@ class Gateway8Settings(GatewaySettings):
         return AsyncOpenSearch(**settings)
 
 
-class Elasticsearch8Gateway(ElasticsearchGateway):
+class OpenSearch2Gateway(OpenSearchGateway):
     """Encapsulates OpenSearch operations."""
 
     _settings: Gateway8Settings
@@ -108,7 +108,7 @@ class Elasticsearch8Gateway(ElasticsearchGateway):
         request_timeout: int = 30,
         minimum_privileges: MappingProxyType[
             str, Any
-        ] = ES_CHECK_PERMISSIONS_DATASTREAM,
+        ] = OS_CHECK_PERMISSIONS_DATASTREAM,
         log: Logger = BASE_LOGGER,
     ) -> None:
         """Initialize the gateway and then stop it."""
@@ -134,7 +134,7 @@ class Elasticsearch8Gateway(ElasticsearchGateway):
 
     @property
     def client(self) -> AsyncOpenSearch:
-        """Return the underlying ES Client."""
+        """Return the underlying OpenSearch Client."""
 
         return self._client
 

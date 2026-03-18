@@ -50,7 +50,7 @@ PUBLISH_REASON_ATTR_CHANGE: str = "Attribute change"
 STATE_CHANGE_TYPE_VALUE: str = PUBLISH_REASON_STATE_CHANGE
 STATE_CHANGE_TYPE_ATTR: str = PUBLISH_REASON_ATTR_CHANGE
 
-ES_CHECK_PERMISSIONS_DATASTREAM: MappingProxyType[str, Any] = MappingProxyType(
+OS_CHECK_PERMISSIONS_DATASTREAM: MappingProxyType[str, Any] = MappingProxyType(
     {
         "cluster": ["manage_index_templates", "monitor"],
         "index": [

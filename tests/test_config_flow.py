@@ -9,7 +9,7 @@ import custom_components.opensearch.const as compconst
 import homeassistant.const as haconst
 import pytest
 from custom_components.opensearch.config_flow import (
-    ElasticOptionsFlowHandler,
+    OpenSearchOptionsFlowHandler,
 )
 from custom_components.opensearch.errors import (
     AuthenticationRequired,
@@ -33,7 +33,7 @@ if TYPE_CHECKING:  # pragma: no cover
 base_path = "custom_components.opensearch"
 config_flow_setup_entry = f"{base_path}.async_setup_entry"
 gateway_async_init = (
-    f"{base_path}.es_gateway_8.Elasticsearch8Gateway.async_init_then_stop"
+    f"{base_path}.os_gateway_8.OpenSearch2Gateway.async_init_then_stop"
 )
 
 
@@ -121,7 +121,7 @@ class Test_Setup_Flows:
         }
         assert (
             "options" in result
-            and result["options"] == ElasticOptionsFlowHandler.default_options
+            and result["options"] == OpenSearchOptionsFlowHandler.default_options
         )
 
     @pytest.mark.parametrize(
@@ -167,7 +167,7 @@ class Test_Setup_Flows:
         }
         assert (
             "options" in result
-            and result["options"] == ElasticOptionsFlowHandler.default_options
+            and result["options"] == OpenSearchOptionsFlowHandler.default_options
         )
 
     @pytest.mark.parametrize(
@@ -229,7 +229,7 @@ class Test_Setup_Flows:
         }
         assert (
             "options" in result
-            and result["options"] == ElasticOptionsFlowHandler.default_options
+            and result["options"] == OpenSearchOptionsFlowHandler.default_options
         )
 
     @pytest.mark.parametrize(

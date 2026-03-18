@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 def self_signed_tls_error():
     """Return a self-signed certificate error."""
     connection_key = MagicMock()
-    connection_key.host = "mock_es_integration"
+    connection_key.host = "mock_os_integration"
     connection_key.port = 9200
     connection_key.is_ssl = True
 
@@ -49,7 +49,7 @@ def self_signed_tls_error():
     )
 
 
-class es_mocker:
+class os_mocker:
     """Mock builder for OpenSearch integration tests."""
 
     mocker: AiohttpClientMocker
@@ -145,7 +145,7 @@ class es_mocker:
         version_response: dict[str, Any],
         with_security: bool = True,
         fail_after=None,
-    ) -> es_mocker:
+    ) -> os_mocker:
         """Mock OpenSearch version."""
 
         self.base_url = (
@@ -170,13 +170,13 @@ class es_mocker:
 
         return self
 
-    def as_opensearch_1_3(self, with_security: bool = True) -> es_mocker:
+    def as_opensearch_1_3(self, with_security: bool = True) -> os_mocker:
         """Mock OpenSearch 1.3."""
         return self._as_opensearch_stateful(
             testconst.CLUSTER_INFO_1DOT3_RESPONSE_BODY, with_security
         )
 
-    def as_opensearch_2_0(self, with_security: bool = True) -> es_mocker:
+    def as_opensearch_2_0(self, with_security: bool = True) -> os_mocker:
         """Mock OpenSearch 2.0."""
         return self._as_opensearch_stateful(
             testconst.CLUSTER_INFO_2DOT0_RESPONSE_BODY, with_security
@@ -184,7 +184,7 @@ class es_mocker:
 
     def as_opensearch_2_17(
         self, with_security: bool = True, fail_after=None
-    ) -> es_mocker:
+    ) -> os_mocker:
         """Mock OpenSearch 2.17."""
         return self._as_opensearch_stateful(
             testconst.CLUSTER_INFO_2DOT17_RESPONSE_BODY,

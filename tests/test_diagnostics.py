@@ -1,4 +1,4 @@
-"""Tests for the Elasticsearch integration diagnostics."""
+"""Tests for the OpenSearch integration diagnostics."""
 
 import pytest
 from custom_components.opensearch.diagnostics import async_get_config_entry_diagnostics

@@ -25,15 +25,15 @@ from custom_components.opensearch.const import (
     CONF_TAGS,
     CONF_TARGETS_TO_EXCLUDE,
     CONF_TARGETS_TO_INCLUDE,
-    ES_CHECK_PERMISSIONS_DATASTREAM,
+    OS_CHECK_PERMISSIONS_DATASTREAM,
 )
-from custom_components.opensearch.errors import ESIntegrationException
-from custom_components.opensearch.es_datastream_manager import DatastreamManager
-from custom_components.opensearch.es_gateway_8 import (
-    Elasticsearch8Gateway,
+from custom_components.opensearch.errors import OSIntegrationException
+from custom_components.opensearch.os_datastream_manager import DatastreamManager
+from custom_components.opensearch.os_gateway_8 import (
+    OpenSearch2Gateway,
     Gateway8Settings,
 )
-from custom_components.opensearch.es_publish_pipeline import Pipeline, PipelineSettings
+from custom_components.opensearch.os_publish_pipeline import Pipeline, PipelineSettings
 from custom_components.opensearch.logger import LOGGER as BASE_LOGGER
 from custom_components.opensearch.logger import (
     async_log_enter_exit_debug,
@@ -48,7 +48,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from homeassistant.core import HomeAssistant
 
 
-class ElasticIntegration:
+class OpenSearchIntegration:
     """Integration for publishing entity state change events to OpenSearch."""
 
     @log_enter_exit_debug
@@ -68,7 +68,7 @@ class ElasticIntegration:
         gateway_settings: Gateway8Settings = self.build_gateway_parameters(
             config_entry=self._config_entry,
         )
-        self._gateway = Elasticsearch8Gateway(
+        self._gateway = OpenSearch2Gateway(
             log=self._logger, gateway_settings=gateway_settings
         )
 
@@ -94,7 +94,7 @@ class ElasticIntegration:
             await self._datastream_manager.async_init()
             await self._pipeline_manager.async_init(config_entry=self._config_entry)
 
-        except ESIntegrationException as err:
+        except OSIntegrationException as err:
             self._logger.error("Error initializing integration: %s", err)
             self._logger.debug("Error initializing integration", exc_info=True)
             await self.async_shutdown()
@@ -112,7 +112,7 @@ class ElasticIntegration:
         config_entry: ConfigEntry,
         minimum_privileges: MappingProxyType[
             str, Any
-        ] = ES_CHECK_PERMISSIONS_DATASTREAM,
+        ] = OS_CHECK_PERMISSIONS_DATASTREAM,
     ) -> Gateway8Settings:
         """Build the parameters for the OpenSearch gateway."""
         return Gateway8Settings(

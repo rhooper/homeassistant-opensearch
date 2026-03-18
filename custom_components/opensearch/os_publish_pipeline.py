@@ -56,7 +56,7 @@ from custom_components.opensearch.entity_details import (
 )
 from custom_components.opensearch.errors import (
     AuthenticationRequired,
-    ESIntegrationConnectionException,
+    OSIntegrationConnectionException,
 )
 from custom_components.opensearch.logger import LOGGER as BASE_LOGGER
 from custom_components.opensearch.logger import (
@@ -71,7 +71,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from homeassistant.helpers.device_registry import DeviceEntry
     from homeassistant.helpers.entity_registry import RegistryEntry
 
-    from custom_components.opensearch.es_gateway import ElasticsearchGateway
+    from custom_components.opensearch.os_gateway import OpenSearchGateway
 
 ALLOWED_ATTRIBUTE_KEY_TYPES = str
 ALLOWED_ATTRIBUTE_VALUE_TYPES = (
@@ -139,14 +139,14 @@ class Pipeline:
         def __init__(
             self,
             hass: HomeAssistant,
-            gateway: ElasticsearchGateway,
+            gateway: OpenSearchGateway,
             settings: PipelineSettings,
             log: Logger = BASE_LOGGER,
         ) -> None:
             """Initialize the manager."""
             self._logger = log if log else BASE_LOGGER
             self._hass: HomeAssistant = hass
-            self._gateway: ElasticsearchGateway = gateway
+            self._gateway: OpenSearchGateway = gateway
 
             self._config_entry: ConfigEntry | None = None
 
@@ -527,7 +527,7 @@ class Pipeline:
         async def async_init(self, config_entry: ConfigEntry) -> None:
             """Initialize the poller."""
             state_poll_loop = LoopHandler(
-                name="es_state_poll_loop",
+                name="os_state_poll_loop",
                 func=self.poll,
                 frequency=self._settings.polling_frequency,
                 log=self._logger,
@@ -536,7 +536,7 @@ class Pipeline:
             config_entry.async_create_background_task(
                 self._hass,
                 async_create_catching_coro(state_poll_loop.start()),
-                "es_state_poll_task",
+                "os_state_poll_task",
             )
 
             await state_poll_loop.wait_for_first_run()
@@ -598,7 +598,7 @@ class Pipeline:
             return utils.prepare_dict(document)
 
         def _state_to_extended_details(self, state: State) -> dict:
-            """Gather entity details from the state object and return a mapped dictionary ready to be put in an elasticsearch document."""
+            """Gather entity details from the state object and return a mapped dictionary ready to be put in an OpenSearch document."""
 
             document = self._extended_entity_details.async_get(
                 state.entity_id
@@ -616,7 +616,7 @@ class Pipeline:
             return document
 
         def _state_to_attributes(self, state: State) -> dict:
-            """Convert the attributes of a State object into a dictionary compatible with Elasticsearch mappings."""
+            """Convert the attributes of a State object into a dictionary compatible with OpenSearch mappings."""
 
             attributes = {}
 
@@ -806,7 +806,7 @@ class Pipeline:
         def __init__(
             self,
             hass: HomeAssistant,
-            gateway: ElasticsearchGateway,
+            gateway: OpenSearchGateway,
             settings: PipelineSettings,
             manager: Pipeline.Manager,
             log: Logger = BASE_LOGGER,
@@ -823,7 +823,7 @@ class Pipeline:
         async def async_init(self, config_entry: ConfigEntry) -> None:
             """Initialize the publisher."""
             filter_format_publish = LoopHandler(
-                name="es_filter_format_publish_loop",
+                name="os_filter_format_publish_loop",
                 func=self.publish,
                 frequency=self._settings.publish_frequency,
                 log=self._logger,
@@ -832,7 +832,7 @@ class Pipeline:
             config_entry.async_create_background_task(
                 self._hass,
                 async_create_catching_coro(filter_format_publish.start()),
-                "es_filter_format_publish_task",
+                "os_filter_format_publish_task",
             )
 
             await filter_format_publish.wait_for_first_run()
@@ -851,7 +851,7 @@ class Pipeline:
             self,
             iterable: AsyncGenerator[dict[str, Any], Any],
         ) -> AsyncGenerator[dict[str, Any], Any]:
-            """Prepare the document for insertion into Elasticsearch."""
+            """Prepare the document for insertion into OpenSearch."""
             async for document in iterable:
                 yield {
                     "_op_type": "create",
@@ -864,7 +864,7 @@ class Pipeline:
                 }
 
         async def publish(self) -> None:
-            """Publish the document to Elasticsearch."""
+            """Publish the document to OpenSearch."""
 
             try:
                 if not await self._gateway.check_connection():
@@ -886,7 +886,7 @@ class Pipeline:
                 self._logger.error(msg)
                 self._logger.debug(msg, exc_info=True)
 
-            except ESIntegrationConnectionException:
+            except OSIntegrationConnectionException:
                 msg = "Connection error in publishing loop."
 
                 self._logger.error(msg)

@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import opensearchpy
 import pytest
 from aiohttp import client_exceptions
-from custom_components.opensearch.const import ES_CHECK_PERMISSIONS_DATASTREAM
+from custom_components.opensearch.const import OS_CHECK_PERMISSIONS_DATASTREAM
 from custom_components.opensearch.datastreams.index_template import (
     index_template_definition,
 )
@@ -21,11 +21,11 @@ from custom_components.opensearch.errors import (
     ServerError,
     UntrustedCertificate,
 )
-from custom_components.opensearch.es_gateway import (
-    ElasticsearchGateway,
+from custom_components.opensearch.os_gateway import (
+    OpenSearchGateway,
 )
-from custom_components.opensearch.es_gateway_8 import (
-    Elasticsearch8Gateway,
+from custom_components.opensearch.os_gateway_8 import (
+    OpenSearch2Gateway,
     Gateway8Settings,
 )
 from opensearchpy import AsyncOpenSearch
@@ -36,7 +36,7 @@ from tests import const as testconst
 def self_signed_tls_error():
     """Return a self-signed certificate error."""
     connection_key = MagicMock()
-    connection_key.host = "mock_es_integration"
+    connection_key.host = "mock_os_integration"
     connection_key.port = 9200
     connection_key.is_ssl = True
 
@@ -99,11 +99,11 @@ def gateway_settings() -> Gateway8Settings:
 
 
 @pytest.fixture
-async def gateway_mock_shared(gateway_settings) -> Elasticsearch8Gateway:
+async def gateway_mock_shared(gateway_settings) -> OpenSearch2Gateway:
     """Return a mock OpenSearch client."""
     gateway_settings.to_client = MagicMock(return_value=MagicMock(AsyncOpenSearch))
 
-    gateway = Elasticsearch8Gateway(gateway_settings=gateway_settings)
+    gateway = OpenSearch2Gateway(gateway_settings=gateway_settings)
 
     gateway._client.security = MagicMock()
 
@@ -151,8 +151,8 @@ async def gateway_mock_shared(gateway_settings) -> Elasticsearch8Gateway:
 
 @pytest.fixture
 async def gateway_mock_stateful(
-    gateway_mock_shared: Elasticsearch8Gateway, mock_logger
-) -> Elasticsearch8Gateway:
+    gateway_mock_shared: OpenSearch2Gateway, mock_logger
+) -> OpenSearch2Gateway:
     """Return a mock OpenSearch client for a Stateful cluster."""
 
     gateway_mock_shared._client.info = mock_os_response(
@@ -169,7 +169,7 @@ class Test_Initialization:
 
     async def test_init_basic_auth(self) -> None:
         """Test initializing a gateway with basic authentication."""
-        gateway = Elasticsearch8Gateway(
+        gateway = OpenSearch2Gateway(
             gateway_settings=Gateway8Settings(
                 url=testconst.CONFIG_ENTRY_DATA_URL,
                 username="username",
@@ -184,7 +184,7 @@ class Test_Initialization:
 
     async def test_init_no_auth(self) -> None:
         """Test initializing a gateway with no authentication."""
-        gateway = Elasticsearch8Gateway(
+        gateway = OpenSearch2Gateway(
             gateway_settings=Gateway8Settings(
                 url=testconst.CONFIG_ENTRY_DATA_URL_INSECURE,
             )
@@ -221,7 +221,7 @@ class Test_Initialization:
     ) -> None:
         """Test initializing a gateway with various TLS settings."""
 
-        gateway = Elasticsearch8Gateway(
+        gateway = OpenSearch2Gateway(
             gateway_settings=Gateway8Settings(
                 url=testconst.CONFIG_ENTRY_DATA_URL,
                 verify_certs=verify_certs,
@@ -241,7 +241,7 @@ class Test_Initialization:
         # cert is located in "certs/http_ca.crt" relative to this file, get the absolute path
         current_directory = os.path.dirname(os.path.abspath(__file__))
 
-        gateway = Elasticsearch8Gateway(
+        gateway = OpenSearch2Gateway(
             gateway_settings=Gateway8Settings(
                 url=testconst.CONFIG_ENTRY_DATA_URL,
                 verify_certs=True,
@@ -364,7 +364,7 @@ class Test_Public_Functions:
 
     async def test_has_privileges(self, gateway_mock_stateful):
         """Test the has_privileges method always returns True (OpenSearch has no _has_privileges API)."""
-        privileges = ES_CHECK_PERMISSIONS_DATASTREAM
+        privileges = OS_CHECK_PERMISSIONS_DATASTREAM
 
         assert await gateway_mock_stateful.has_privileges(privileges) is True
 
@@ -430,7 +430,7 @@ class Test_Public_Functions:
             )
 
         with patch(
-            "custom_components.opensearch.es_gateway_8.async_streaming_bulk"
+            "custom_components.opensearch.os_gateway_8.async_streaming_bulk"
         ) as mock_streaming_bulk:
             mock_streaming_bulk.side_effect = [yield_response()]
 
@@ -445,7 +445,7 @@ class Test_Public_Functions:
         """Test the bulk method."""
 
         with patch(
-            "custom_components.opensearch.es_gateway_8.async_streaming_bulk"
+            "custom_components.opensearch.os_gateway_8.async_streaming_bulk"
         ) as mock_streaming_bulk:
             await gateway_mock_stateful.bulk(actions=[])
 
@@ -460,7 +460,7 @@ class Test_Public_Functions:
         @pytest.fixture(name="gateway")
         async def gateway_fixture(self, gateway_settings, mock_logger):
             """Return a gateway instance."""
-            gateway = Elasticsearch8Gateway(gateway_settings=gateway_settings)
+            gateway = OpenSearch2Gateway(gateway_settings=gateway_settings)
 
             gateway._logger = mock_logger
 
@@ -613,12 +613,12 @@ class Test_Errors_e2e:
     """Test the error handling of aiohttp errors through the OpenSearch Client and Gateway."""
 
     @pytest.fixture
-    async def gateway(self, gateway_settings, es_mock_builder):
+    async def gateway(self, gateway_settings, os_mock_builder):
         """Return a gateway instance."""
 
-        es_mock_builder.as_opensearch_2_17().with_correct_permissions()
-        gateway = Elasticsearch8Gateway(gateway_settings=gateway_settings)
-        es_mock_builder.reset()
+        os_mock_builder.as_opensearch_2_17().with_correct_permissions()
+        gateway = OpenSearch2Gateway(gateway_settings=gateway_settings)
+        os_mock_builder.reset()
 
         try:
             yield gateway
@@ -648,13 +648,13 @@ class Test_Errors_e2e:
     )
     async def test_http_error_codes(
         self,
-        gateway: ElasticsearchGateway,
-        es_mock_builder,
+        gateway: OpenSearchGateway,
+        os_mock_builder,
         status_code: int,
         expected_exception: Any,
     ) -> None:
         """Test the error converter."""
-        es_mock_builder.with_server_error(status=status_code)
+        os_mock_builder.with_server_error(status=status_code)
 
         with pytest.raises(expected_exception):
             await gateway.info()
@@ -697,11 +697,11 @@ class Test_Errors_e2e:
         ],
     )
     async def test_aiohttp_web_exceptions(
-        self, aiohttp_exception, expected_exception, gateway, es_mock_builder
+        self, aiohttp_exception, expected_exception, gateway, os_mock_builder
     ) -> None:
         """Test the error converter."""
 
-        es_mock_builder.with_server_error(exc=aiohttp_exception)
+        os_mock_builder.with_server_error(exc=aiohttp_exception)
 
         with pytest.raises(expected_exception):
             await gateway.info()

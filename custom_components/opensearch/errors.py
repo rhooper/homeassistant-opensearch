@@ -3,15 +3,15 @@
 from homeassistant.exceptions import HomeAssistantError
 
 
-class ESIntegrationException(HomeAssistantError):  # noqa: N818
+class OSIntegrationException(HomeAssistantError):  # noqa: N818
     """Base class for OpenSearch exceptions."""
 
 
-class ESIntegrationConnectionException(ESIntegrationException):
+class OSIntegrationConnectionException(OSIntegrationException):
     """Base class for OpenSearch exceptions."""
 
 
-class AuthenticationRequired(ESIntegrationConnectionException):
+class AuthenticationRequired(OSIntegrationConnectionException):
     """Cluster requires authentication."""
 
 
@@ -19,7 +19,7 @@ class InsufficientPrivileges(AuthenticationRequired):
     """Credentials are lacking the required privileges."""
 
 
-class CannotConnect(ESIntegrationConnectionException):
+class CannotConnect(OSIntegrationConnectionException):
     """Unable to connect to the cluster."""
 
 
@@ -39,5 +39,5 @@ class UntrustedCertificate(SSLError):
     """Received a untrusted certificate error."""
 
 
-class UnsupportedVersion(ESIntegrationConnectionException):
+class UnsupportedVersion(OSIntegrationConnectionException):
     """Connected to an unsupported version of OpenSearch."""

@@ -15,12 +15,12 @@ from homeassistant.loader import (
     async_get_integration,
 )
 
-from custom_components.opensearch.config_flow import ElasticFlowHandler
+from custom_components.opensearch.config_flow import OpenSearchFlowHandler
 from custom_components.opensearch.const import OPENSEARCH_DOMAIN
 from custom_components.opensearch.errors import (
     AuthenticationRequired,
     CannotConnect,
-    ESIntegrationException,
+    OSIntegrationException,
     UnsupportedVersion,
 )
 from custom_components.opensearch.logger import (
@@ -31,17 +31,17 @@ from custom_components.opensearch.logger import (
     log_enter_exit_debug,
 )
 
-from .es_integration import ElasticIntegration
+from .os_integration import OpenSearchIntegration
 
 if TYPE_CHECKING:  # pragma: no cover
     from homeassistant.core import HomeAssistant
 
-type ElasticIntegrationConfigEntry = ConfigEntry[ElasticIntegration]
+type OpenSearchIntegrationConfigEntry = ConfigEntry[OpenSearchIntegration]
 
 
 @async_log_enter_exit_info
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry
+    hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry
 ) -> bool:
     """Set up integration via config flow."""
 
@@ -53,7 +53,7 @@ async def async_setup_entry(
     _logger.info("Initializing integration v%s for %s", version, config_entry.title)
 
     try:
-        integration = ElasticIntegration(
+        integration = OpenSearchIntegration(
             hass=hass, config_entry=config_entry, log=_logger
         )
         await integration.async_init()
@@ -61,7 +61,7 @@ async def async_setup_entry(
         raise ConfigEntryNotReady(err) from err
     except AuthenticationRequired as err:
         raise ConfigEntryAuthFailed(err) from err
-    except ESIntegrationException as err:
+    except OSIntegrationException as err:
         raise ConfigEntryNotReady(err) from err
     except Exception as err:
         msg = "Unknown error occurred"
@@ -74,14 +74,14 @@ async def async_setup_entry(
 
 @async_log_enter_exit_info
 async def async_unload_entry(
-    hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry
+    hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry
 ) -> bool:
     """Teardown integration."""
 
     if (
         hasattr(config_entry, "runtime_data")
         and config_entry.runtime_data is not None
-        and isinstance(config_entry.runtime_data, ElasticIntegration)
+        and isinstance(config_entry.runtime_data, OpenSearchIntegration)
     ):
         integration = config_entry.runtime_data
 
@@ -97,24 +97,24 @@ async def async_unload_entry(
 
 @async_log_enter_exit_debug
 async def async_migrate_entry(
-    hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry
+    hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry
 ) -> bool:
     """Handle migration of config entry."""
-    if config_entry.version == ElasticFlowHandler.VERSION:
+    if config_entry.version == OpenSearchFlowHandler.VERSION:
         return True
 
     try:
         migrated_data, migrated_options, migrated_version = (
             migrate_data_and_options_to_version(
                 config_entry,
-                ElasticFlowHandler.VERSION,
+                OpenSearchFlowHandler.VERSION,
             )
         )
     except Exception:  # noqa: BLE001
         LOGGER.exception(
             "Migration failed attempting to migrate from version %s to version %s.",
             config_entry.version,
-            ElasticFlowHandler.VERSION,
+            OpenSearchFlowHandler.VERSION,
         )
         return False
 
@@ -140,7 +140,7 @@ async def get_integration_version(hass) -> str:
 
 @log_enter_exit_debug
 def migrate_data_and_options_to_version(
-    config_entry: ElasticIntegrationConfigEntry,
+    config_entry: OpenSearchIntegrationConfigEntry,
     desired_version: int,
 ) -> tuple[dict, dict, int]:
     """Migrate a config entry from its current version to a desired version."""

@@ -6,14 +6,14 @@ from unittest.mock import AsyncMock
 
 import pytest
 from custom_components.opensearch.datastreams import index_template
-from custom_components.opensearch.es_datastream_manager import DatastreamManager
-from custom_components.opensearch.es_gateway import ElasticsearchGateway
+from custom_components.opensearch.os_datastream_manager import DatastreamManager
+from custom_components.opensearch.os_gateway import OpenSearchGateway
 
 
 @pytest.fixture
 async def mock_gateway() -> AsyncMock:
-    """Return an ElasticsearchGateway instance."""
-    gateway = AsyncMock(ElasticsearchGateway)
+    """Return an OpenSearchGateway instance."""
+    gateway = AsyncMock(OpenSearchGateway)
 
     gateway.get_index_template = AsyncMock()
     gateway.put_index_template = AsyncMock()
@@ -41,7 +41,7 @@ class Test_Initialization:
         assert datastream_manager._gateway == mock_gateway
 
     async def test_async_init_first_run(self, datastream_manager):
-        """Test initialization of the DatastreamManager with a fresh ES cluster."""
+        """Test initialization of the DatastreamManager with a fresh OpenSearch cluster."""
 
         datastream_manager._gateway.get_index_template = AsyncMock(
             return_value={"index_templates": []},
@@ -77,7 +77,7 @@ class Test_Initialization:
         datastream_manager._gateway.rollover_datastream.assert_not_called()
 
     async def test_async_init_update_required(self, datastream_manager):
-        """Test initialization of the DatastreamManager with an existing ES cluster that requires an index template update and rollover."""
+        """Test initialization of the DatastreamManager with an existing OpenSearch cluster that requires an index template update and rollover."""
         datastream_manager._gateway.get_index_template = AsyncMock(
             return_value={
                 "index_templates": [

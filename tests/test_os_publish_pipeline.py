@@ -1,4 +1,4 @@
-"""Tests for the es_publish_pipeline module."""
+"""Tests for the os_publish_pipeline module."""
 
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from custom_components.opensearch import utils
 from custom_components.opensearch.errors import AuthenticationRequired, CannotConnect
-from custom_components.opensearch.es_gateway import ElasticsearchGateway
-from custom_components.opensearch.es_publish_pipeline import (
+from custom_components.opensearch.os_gateway import OpenSearchGateway
+from custom_components.opensearch.os_publish_pipeline import (
     EventQueue,
     Pipeline,
     PipelineSettings,
@@ -58,8 +58,8 @@ def queue_fixture():
 
 @pytest.fixture(name="mock_gateway")
 def mock_gateway_fixture():
-    """Return a mock ElasticsearchGateway instance."""
-    return MagicMock(spec=ElasticsearchGateway)
+    """Return a mock OpenSearchGateway instance."""
+    return MagicMock(spec=OpenSearchGateway)
 
 
 @pytest.fixture(name="mock_listener")
@@ -162,19 +162,19 @@ async def manager_fixture(
     # patch the init methods for the listener, poller, formatter, and publisher to return mocks
     with (
         patch(
-            "custom_components.opensearch.es_publish_pipeline.Pipeline.Listener"
+            "custom_components.opensearch.os_publish_pipeline.Pipeline.Listener"
         ) as listener,
         patch(
-            "custom_components.opensearch.es_publish_pipeline.Pipeline.Poller"
+            "custom_components.opensearch.os_publish_pipeline.Pipeline.Poller"
         ) as poller,
         patch(
-            "custom_components.opensearch.es_publish_pipeline.Pipeline.Filterer"
+            "custom_components.opensearch.os_publish_pipeline.Pipeline.Filterer"
         ) as filterer,
         patch(
-            "custom_components.opensearch.es_publish_pipeline.Pipeline.Formatter"
+            "custom_components.opensearch.os_publish_pipeline.Pipeline.Formatter"
         ) as formatter,
         patch(
-            "custom_components.opensearch.es_publish_pipeline.Pipeline.Publisher"
+            "custom_components.opensearch.os_publish_pipeline.Pipeline.Publisher"
         ) as publisher,
     ):
         listener.return_value = mock_listener
@@ -721,7 +721,7 @@ class Test_Poller:
             """Test the async initialization of the Poller."""
             with (
                 patch(
-                    "custom_components.opensearch.es_publish_pipeline.LoopHandler"
+                    "custom_components.opensearch.os_publish_pipeline.LoopHandler"
                 ) as loop_handler,
             ):
                 # Ensure we don't start a coroutine that never finishes
@@ -734,7 +734,7 @@ class Test_Poller:
                 await poller.async_init(config_entry=config_entry)
 
                 loop_handler.assert_called_once_with(
-                    name="es_state_poll_loop",
+                    name="os_state_poll_loop",
                     func=poller.poll,
                     frequency=poller._settings.polling_frequency,
                     log=poller._logger,
@@ -883,7 +883,7 @@ class Test_Publisher:
 
     @pytest.fixture(name="mock_document")
     def mock_document_fixture(self):
-        """Return a mock entity document without ES action metadata."""
+        """Return a mock entity document without OpenSearch action metadata."""
         return {
             "data_stream.type": "metrics",
             "data_stream.dataset": "homeassistant.light",
@@ -939,7 +939,7 @@ class Test_Publisher:
         assert publisher._format_datastream_name.cache_info().hits == 1
 
     async def test_add_action_and_meta_data(self, publisher, mock_document):
-        """Test converting document to an elasticsearch bulk action."""
+        """Test converting document to an OpenSearch bulk action."""
 
         async def yield_doc():
             yield mock_document
@@ -964,7 +964,7 @@ class Test_Publisher:
             return iterable
 
         async def test_publish(self, publisher, populate_documents):
-            """Ensure publish translates to an ES Bulk action."""
+            """Ensure publish translates to an OpenSearch Bulk action."""
             await publisher.publish()
 
             # Assert that the bulk method of the gateway was called with the correct arguments
@@ -1036,7 +1036,7 @@ class Test_Publisher:
                 publisher._gateway.bulk.assert_not_called()
 
         async def test_publish_bulk_connection_error(self, publisher):
-            """Ensure that we gracefully handle connection errors from the ES Bulk request."""
+            """Ensure that we gracefully handle connection errors from the OpenSearch Bulk request."""
             with patch.object(publisher._gateway, "bulk", side_effect=CannotConnect):
                 await publisher.publish()
                 publisher._logger.error.assert_called_once_with(

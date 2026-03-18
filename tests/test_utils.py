@@ -1,4 +1,4 @@
-"""Utility functions for the Elasticsearch Integration."""
+"""Utility functions for the OpenSearch Integration."""
 
 from custom_components.opensearch.utils import flatten_dict
 

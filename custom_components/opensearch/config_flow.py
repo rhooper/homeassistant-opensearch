@@ -49,7 +49,7 @@ from custom_components.opensearch.errors import (
     InsufficientPrivileges,
     UntrustedCertificate,
 )
-from custom_components.opensearch.es_gateway_8 import Elasticsearch8Gateway
+from custom_components.opensearch.os_gateway_8 import OpenSearch2Gateway
 
 from .logger import LOGGER as BASE_LOGGER
 from .logger import (
@@ -80,12 +80,12 @@ TRANSLATION_KEY_ATTRIBUTE = "attribute"
 TRANSLATION_KEY_BASIC_AUTH = "basic_auth"
 
 
-class ElasticFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
+class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
     """Handle an OpenSearch config flow."""
 
     VERSION = 7
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
-    GATEWAY = Elasticsearch8Gateway
+    GATEWAY = OpenSearch2Gateway
 
     def __init__(self) -> None:
         """Initialize the OpenSearch flow."""
@@ -110,7 +110,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
             self._prospective_config.update(user_input)
 
             try:
-                await Elasticsearch8Gateway.async_init_then_stop(**prospective_settings)
+                await OpenSearch2Gateway.async_init_then_stop(**prospective_settings)
 
             except UntrustedCertificate:
                 return await self.async_step_certificate_issues()
@@ -147,7 +147,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
 
         if user_input is not None:
             try:
-                await Elasticsearch8Gateway.async_init_then_stop(
+                await OpenSearch2Gateway.async_init_then_stop(
                     url=self._prospective_config[CONF_URL],
                     verify_certs=user_input.get(CONF_VERIFY_SSL, True),
                     ca_certs=user_input.get(CONF_SSL_CA_PATH),
@@ -205,7 +205,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
 
         if user_input is not None:
             try:
-                await Elasticsearch8Gateway.async_init_then_stop(
+                await OpenSearch2Gateway.async_init_then_stop(
                     url=self._prospective_config[CONF_URL],
                     username=user_input.get(CONF_USERNAME),
                     password=user_input.get(CONF_PASSWORD),
@@ -252,7 +252,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
     @log_enter_exit_info
     def async_step_complete(self) -> ConfigFlowResult:
         """Handle the completion of the flow."""
-        default_options = ElasticOptionsFlowHandler.default_options
+        default_options = OpenSearchOptionsFlowHandler.default_options
 
         if self._reauth_entry is not None:
             return self.async_update_reload_and_abort(
@@ -273,7 +273,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
-        return ElasticOptionsFlowHandler(config_entry)
+        return OpenSearchOptionsFlowHandler(config_entry)
 
     async def async_step_reauth(
         self, user_input: dict | None = None
@@ -293,7 +293,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
         return self.async_abort(reason="no_auth")
 
 
-class ElasticOptionsFlowHandler(config_entries.OptionsFlow):
+class OpenSearchOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle OpenSearch options."""
 
     default_options: dict[str, Any] = {

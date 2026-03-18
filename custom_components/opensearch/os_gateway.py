@@ -11,7 +11,7 @@ from custom_components.opensearch.errors import (
     UnsupportedVersion,
 )
 from custom_components.opensearch.const import (
-    ES_CHECK_PERMISSIONS_DATASTREAM,
+    OS_CHECK_PERMISSIONS_DATASTREAM,
     OPENSEARCH_MINIMUM_VERSION,
 )
 
@@ -60,7 +60,7 @@ class GatewaySettings(ABC):
         }
 
 
-class ElasticsearchGateway(ABC):
+class OpenSearchGateway(ABC):
     """Encapsulates OpenSearch operations."""
 
     _logger = BASE_LOGGER
@@ -98,7 +98,7 @@ class ElasticsearchGateway(ABC):
     @property
     @abstractmethod
     def client(self) -> AsyncOpenSearch:
-        """Return the underlying ES Client."""
+        """Return the underlying OpenSearch Client."""
 
     @property
     @abstractmethod
@@ -118,7 +118,7 @@ class ElasticsearchGateway(ABC):
         request_timeout: int = 30,
         minimum_privileges: MappingProxyType[
             str, Any
-        ] = ES_CHECK_PERMISSIONS_DATASTREAM,
+        ] = OS_CHECK_PERMISSIONS_DATASTREAM,
         log: Logger = BASE_LOGGER,
     ) -> None:
         """Initialize the gateway and then stop it."""
