@@ -24,8 +24,8 @@ index_template_definition: dict[str, Any] = {
                 "data_stream": {
                     "properties": {
                         "type": {"type": "constant_keyword", "value": "metrics"},
-                        "dataset": {"type": "constant_keyword"},
-                        "namespace": {"type": "constant_keyword"},
+                        "dataset": {"type": "constant_keyword", "value": "homeassistant"},
+                        "namespace": {"type": "constant_keyword", "value": "default"},
                     }
                 },
                 "hass": {
@@ -44,7 +44,6 @@ index_template_definition: dict[str, Any] = {
                                     "properties": {
                                         "id": {
                                             "type": "keyword",
-                                            "time_series_dimension": True,
                                         }
                                     },
                                 },
@@ -165,14 +164,10 @@ index_template_definition: dict[str, Any] = {
         },
         "settings": {
             "codec": "best_compression",
-            "index.mode": "time_series",
             "mapping": {"total_fields": {"limit": "10000"}},
         },
-        "lifecycle": {"data_retention": "365d"},
     },
-    "composed_of": "metrics-homeassistant@custom",
-    "ignore_missing_component_templates": "metrics-homeassistant@custom",
     "priority": 500,
     "data_stream": {},
-    "version": 6,
+    "version": 7,
 }
