@@ -451,7 +451,7 @@ class Test_Manager:
             "agent.version": "1.0.0",
             "host.architecture": "x86",
             "host.os.name": "Linux",
-            "host.hostname": "my_es_host",
+            "host.hostname": "my_os_host",
             "tags": ["tag1", "tag2"],
             "host.location": [
                 testconst.MOCK_LOCATION_SERVER_LON,
@@ -988,7 +988,7 @@ class Test_Formatter:
             "agent.version": "1.0.0",
             "host.architecture": "x86",
             "host.os.name": "Linux",
-            "host.hostname": "my_es_host",
+            "host.hostname": "my_os_host",
         }
 
         await formatter.async_init(

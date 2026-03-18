@@ -387,60 +387,6 @@ CLUSTER_INFO_MISSING_CREDENTIALS_RESPONSE_BODY = {
     "status": 401,
 }
 
-CLUSTER_INFO_1DOT3_RESPONSE_BODY = {
-    "name": "b33ad024a3eb",
-    "cluster_name": "docker-cluster",
-    "cluster_uuid": "0gTsD5juRwmRElXBCEfk6Q",
-    "version": {
-        "distribution": "opensearch",
-        "number": "1.3.0",
-        "build_type": "docker",
-        "build_hash": "1b6a7ece17463df5ff54a3e1302d825889aa1161",
-        "build_date": "2022-03-15T16:47:57.507843096Z",
-        "build_snapshot": False,
-        "lucene_version": "8.10.1",
-        "minimum_wire_compatibility_version": "6.8.0",
-        "minimum_index_compatibility_version": "6.0.0",
-    },
-    "tagline": "The OpenSearch Project: https://opensearch.org/",
-}
-
-CLUSTER_INFO_2DOT0_RESPONSE_BODY = {
-    "name": "b33ad024a3eb",
-    "cluster_name": "docker-cluster",
-    "cluster_uuid": "0gTsD5juRwmRElXBCEfk6Q",
-    "version": {
-        "distribution": "opensearch",
-        "number": "2.0.0",
-        "build_type": "docker",
-        "build_hash": "1b6a7ece17463df5ff54a3e1302d825889aa1161",
-        "build_date": "2022-05-18T16:47:57.507843096Z",
-        "build_snapshot": False,
-        "lucene_version": "9.1.0",
-        "minimum_wire_compatibility_version": "7.10.0",
-        "minimum_index_compatibility_version": "7.0.0",
-    },
-    "tagline": "The OpenSearch Project: https://opensearch.org/",
-}
-
-CLUSTER_INFO_2DOT11_RESPONSE_BODY = {
-    "name": "640dcce4be79",
-    "cluster_name": "docker-cluster",
-    "cluster_uuid": "R-PPqCZYQTCMvkpGcyL4mA",
-    "version": {
-        "distribution": "opensearch",
-        "number": "2.11.0",
-        "build_type": "docker",
-        "build_hash": "d9ec3fa628c7b0ba3d25692e277ba26814820b20",
-        "build_date": "2023-11-04T10:04:57.184859352Z",
-        "build_snapshot": False,
-        "lucene_version": "9.7.0",
-        "minimum_wire_compatibility_version": "7.10.0",
-        "minimum_index_compatibility_version": "7.0.0",
-    },
-    "tagline": "The OpenSearch Project: https://opensearch.org/",
-}
-
 CLUSTER_INFO_2DOT17_RESPONSE_BODY = {
     "name": "640dcce4be79",
     "cluster_name": "docker-cluster",
@@ -448,24 +394,6 @@ CLUSTER_INFO_2DOT17_RESPONSE_BODY = {
     "version": {
         "distribution": "opensearch",
         "number": "2.17.0",
-        "build_type": "docker",
-        "build_hash": "d9ec3fa628c7b0ba3d25692e277ba26814820b20",
-        "build_date": "2023-11-04T10:04:57.184859352Z",
-        "build_snapshot": False,
-        "lucene_version": "9.8.0",
-        "minimum_wire_compatibility_version": "7.10.0",
-        "minimum_index_compatibility_version": "7.0.0",
-    },
-    "tagline": "The OpenSearch Project: https://opensearch.org/",
-}
-
-CLUSTER_INFO_2DOT14_RESPONSE_BODY = {
-    "name": "640dcce4be79",
-    "cluster_name": "docker-cluster",
-    "cluster_uuid": "R-PPqCZYQTCMvkpGcyL4mA",
-    "version": {
-        "distribution": "opensearch",
-        "number": "2.14.0",
         "build_type": "docker",
         "build_hash": "d9ec3fa628c7b0ba3d25692e277ba26814820b20",
         "build_date": "2023-11-04T10:04:57.184859352Z",

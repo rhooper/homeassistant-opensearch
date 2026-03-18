@@ -49,7 +49,7 @@ from custom_components.opensearch.errors import (
     InsufficientPrivileges,
     UntrustedCertificate,
 )
-from custom_components.opensearch.os_gateway_8 import OpenSearch2Gateway
+from custom_components.opensearch.os_gateway import OpenSearchGateway
 
 from .logger import LOGGER as BASE_LOGGER
 from .logger import (
@@ -85,7 +85,7 @@ class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN)
 
     VERSION = 7
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
-    GATEWAY = OpenSearch2Gateway
+    GATEWAY = OpenSearchGateway
 
     def __init__(self) -> None:
         """Initialize the OpenSearch flow."""
@@ -110,7 +110,7 @@ class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN)
             self._prospective_config.update(user_input)
 
             try:
-                await OpenSearch2Gateway.async_init_then_stop(**prospective_settings)
+                await OpenSearchGateway.async_init_then_stop(**prospective_settings)
 
             except UntrustedCertificate:
                 return await self.async_step_certificate_issues()
@@ -147,7 +147,7 @@ class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN)
 
         if user_input is not None:
             try:
-                await OpenSearch2Gateway.async_init_then_stop(
+                await OpenSearchGateway.async_init_then_stop(
                     url=self._prospective_config[CONF_URL],
                     verify_certs=user_input.get(CONF_VERIFY_SSL, True),
                     ca_certs=user_input.get(CONF_SSL_CA_PATH),
@@ -203,7 +203,7 @@ class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN)
 
         if user_input is not None:
             try:
-                await OpenSearch2Gateway.async_init_then_stop(
+                await OpenSearchGateway.async_init_then_stop(
                     url=self._prospective_config[CONF_URL],
                     username=user_input.get(CONF_USERNAME),
                     password=user_input.get(CONF_PASSWORD),

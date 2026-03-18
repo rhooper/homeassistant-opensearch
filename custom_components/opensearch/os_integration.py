@@ -34,9 +34,9 @@ from custom_components.opensearch.logger import (
     log_enter_exit_debug,
 )
 from custom_components.opensearch.os_datastream_manager import DatastreamManager
-from custom_components.opensearch.os_gateway_8 import (
-    Gateway8Settings,
-    OpenSearch2Gateway,
+from custom_components.opensearch.os_gateway import (
+    GatewaySettings,
+    OpenSearchGateway,
 )
 from custom_components.opensearch.os_publish_pipeline import Pipeline, PipelineSettings
 
@@ -63,10 +63,10 @@ class OpenSearchIntegration:
         self._logger.info("Initializing integration components.")
 
         # Initialize our OpenSearch Gateway
-        gateway_settings: Gateway8Settings = self.build_gateway_parameters(
+        gateway_settings: GatewaySettings = self.build_gateway_parameters(
             config_entry=self._config_entry,
         )
-        self._gateway = OpenSearch2Gateway(log=self._logger, gateway_settings=gateway_settings)
+        self._gateway = OpenSearchGateway(log=self._logger, gateway_settings=gateway_settings)
 
         # Initialize our publishing pipeline
         manager_parameters = self.build_pipeline_manager_parameters(
@@ -103,9 +103,9 @@ class OpenSearchIntegration:
         cls,
         config_entry: ConfigEntry,
         minimum_privileges: MappingProxyType[str, Any] = OS_CHECK_PERMISSIONS_DATASTREAM,
-    ) -> Gateway8Settings:
+    ) -> GatewaySettings:
         """Build the parameters for the OpenSearch gateway."""
-        return Gateway8Settings(
+        return GatewaySettings(
             url=config_entry.data[CONF_URL],
             username=config_entry.data.get(CONF_USERNAME),
             password=config_entry.data.get(CONF_PASSWORD),

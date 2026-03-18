@@ -165,14 +165,6 @@ class os_mocker:
 
         return self
 
-    def as_opensearch_1_3(self, with_security: bool = True) -> os_mocker:
-        """Mock OpenSearch 1.3."""
-        return self._as_opensearch_stateful(testconst.CLUSTER_INFO_1DOT3_RESPONSE_BODY, with_security)
-
-    def as_opensearch_2_0(self, with_security: bool = True) -> os_mocker:
-        """Mock OpenSearch 2.0."""
-        return self._as_opensearch_stateful(testconst.CLUSTER_INFO_2DOT0_RESPONSE_BODY, with_security)
-
     def as_opensearch_2_17(self, with_security: bool = True, fail_after=None) -> os_mocker:
         """Mock OpenSearch 2.17."""
         return self._as_opensearch_stateful(
@@ -180,11 +172,6 @@ class os_mocker:
             with_security,
             fail_after=fail_after,
         )
-
-    def as_opensearch_2_14(self, with_security: bool = True):
-        """Mock OpenSearch 2.14."""
-
-        return self._as_opensearch_stateful(testconst.CLUSTER_INFO_2DOT14_RESPONSE_BODY, with_security)
 
     def with_incorrect_permissions(self):
         """Mock the user being properly authenticated."""

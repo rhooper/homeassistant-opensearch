@@ -32,7 +32,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 base_path = "custom_components.opensearch"
 config_flow_setup_entry = f"{base_path}.async_setup_entry"
-gateway_async_init = f"{base_path}.os_gateway_8.OpenSearch2Gateway.async_init_then_stop"
+gateway_async_init = f"{base_path}.os_gateway.OpenSearchGateway.async_init_then_stop"
 
 
 async def add_config_entry_to_hass(hass: HomeAssistant, config_entry):

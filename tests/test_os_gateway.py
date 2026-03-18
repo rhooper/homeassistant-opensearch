@@ -22,11 +22,8 @@ from custom_components.opensearch.errors import (
     UntrustedCertificate,
 )
 from custom_components.opensearch.os_gateway import (
+    GatewaySettings,
     OpenSearchGateway,
-)
-from custom_components.opensearch.os_gateway_8 import (
-    Gateway8Settings,
-    OpenSearch2Gateway,
 )
 from opensearchpy import AsyncOpenSearch
 
@@ -83,25 +80,24 @@ def mock_os_response(body):
 
 
 @pytest.fixture
-def gateway_settings() -> Gateway8Settings:
-    """Return a Gateway8Settings instance."""
-    return Gateway8Settings(
+def gateway_settings() -> GatewaySettings:
+    """Return a GatewaySettings instance."""
+    return GatewaySettings(
         url=testconst.CONFIG_ENTRY_DATA_URL,
         username="username",
         password="password",
         verify_certs=True,
         ca_certs=None,
         request_timeout=30,
-        minimum_version=None,
     )
 
 
 @pytest.fixture
-async def gateway_mock_shared(gateway_settings) -> OpenSearch2Gateway:
+async def gateway_mock_shared(gateway_settings) -> OpenSearchGateway:
     """Return a mock OpenSearch client."""
     gateway_settings.to_client = MagicMock(return_value=MagicMock(AsyncOpenSearch))
 
-    gateway = OpenSearch2Gateway(gateway_settings=gateway_settings)
+    gateway = OpenSearchGateway(gateway_settings=gateway_settings)
 
     gateway._client.security = MagicMock()
 
@@ -146,10 +142,10 @@ async def gateway_mock_shared(gateway_settings) -> OpenSearch2Gateway:
 
 
 @pytest.fixture
-async def gateway_mock_stateful(gateway_mock_shared: OpenSearch2Gateway, mock_logger) -> OpenSearch2Gateway:
+async def gateway_mock_stateful(gateway_mock_shared: OpenSearchGateway, mock_logger) -> OpenSearchGateway:
     """Return a mock OpenSearch client for a Stateful cluster."""
 
-    gateway_mock_shared._client.info = mock_os_response(testconst.CLUSTER_INFO_2DOT14_RESPONSE_BODY)
+    gateway_mock_shared._client.info = mock_os_response(testconst.CLUSTER_INFO_2DOT17_RESPONSE_BODY)
 
     gateway_mock_shared._logger = mock_logger
 
@@ -161,8 +157,8 @@ class Test_Initialization:
 
     async def test_init_basic_auth(self) -> None:
         """Test initializing a gateway with basic authentication."""
-        gateway = OpenSearch2Gateway(
-            gateway_settings=Gateway8Settings(
+        gateway = OpenSearchGateway(
+            gateway_settings=GatewaySettings(
                 url=testconst.CONFIG_ENTRY_DATA_URL,
                 username="username",
                 password="password",
@@ -176,8 +172,8 @@ class Test_Initialization:
 
     async def test_init_no_auth(self) -> None:
         """Test initializing a gateway with no authentication."""
-        gateway = OpenSearch2Gateway(
-            gateway_settings=Gateway8Settings(
+        gateway = OpenSearchGateway(
+            gateway_settings=GatewaySettings(
                 url=testconst.CONFIG_ENTRY_DATA_URL_INSECURE,
             )
         )
@@ -213,8 +209,8 @@ class Test_Initialization:
     ) -> None:
         """Test initializing a gateway with various TLS settings."""
 
-        gateway = OpenSearch2Gateway(
-            gateway_settings=Gateway8Settings(
+        gateway = OpenSearchGateway(
+            gateway_settings=GatewaySettings(
                 url=testconst.CONFIG_ENTRY_DATA_URL,
                 verify_certs=verify_certs,
                 verify_hostname=verify_hostname,
@@ -233,8 +229,8 @@ class Test_Initialization:
         # cert is located in "certs/http_ca.crt" relative to this file, get the absolute path
         current_directory = os.path.dirname(os.path.abspath(__file__))
 
-        gateway = OpenSearch2Gateway(
-            gateway_settings=Gateway8Settings(
+        gateway = OpenSearchGateway(
+            gateway_settings=GatewaySettings(
                 url=testconst.CONFIG_ENTRY_DATA_URL,
                 verify_certs=True,
                 verify_hostname=True,
@@ -252,14 +248,6 @@ class Test_Initialization:
     async def test_async_init(self, gateway_mock_stateful) -> None:
         """Test the async initialization with proper permissions on a supported version."""
 
-        assert await gateway_mock_stateful.async_init() is None
-
-    async def test_async_init_unsupported_version(self, gateway_mock_stateful) -> None:
-        """Test the async_init method when the target cluster is running an unsupported version."""
-
-        gateway_mock_stateful._client.info = mock_os_response(testconst.CLUSTER_INFO_2DOT0_RESPONSE_BODY)
-
-        # 2.0.0 should pass (matches minimum)
         assert await gateway_mock_stateful.async_init() is None
 
     async def test_async_init_unauthenticated(self, gateway_mock_stateful) -> None:
@@ -401,7 +389,7 @@ class Test_Public_Functions:
                 },
             )
 
-        with patch("custom_components.opensearch.os_gateway_8.async_streaming_bulk") as mock_streaming_bulk:
+        with patch("custom_components.opensearch.os_gateway.async_streaming_bulk") as mock_streaming_bulk:
             mock_streaming_bulk.side_effect = [yield_response()]
 
             await gateway_mock_stateful.bulk(actions=yield_doc())
@@ -414,7 +402,7 @@ class Test_Public_Functions:
     async def test_bulk_nothing_to_do(self, gateway_mock_stateful):
         """Test the bulk method."""
 
-        with patch("custom_components.opensearch.os_gateway_8.async_streaming_bulk") as mock_streaming_bulk:
+        with patch("custom_components.opensearch.os_gateway.async_streaming_bulk") as mock_streaming_bulk:
             await gateway_mock_stateful.bulk(actions=[])
 
             assert mock_streaming_bulk.call_count == 1
@@ -428,7 +416,7 @@ class Test_Public_Functions:
         @pytest.fixture(name="gateway")
         async def gateway_fixture(self, gateway_settings, mock_logger):
             """Return a gateway instance."""
-            gateway = OpenSearch2Gateway(gateway_settings=gateway_settings)
+            gateway = OpenSearchGateway(gateway_settings=gateway_settings)
 
             gateway._logger = mock_logger
 
@@ -569,7 +557,7 @@ class Test_Errors_e2e:
         """Return a gateway instance."""
 
         os_mock_builder.as_opensearch_2_17().with_correct_permissions()
-        gateway = OpenSearch2Gateway(gateway_settings=gateway_settings)
+        gateway = OpenSearchGateway(gateway_settings=gateway_settings)
         os_mock_builder.reset()
 
         try:

@@ -247,7 +247,26 @@ class Test_Normal_Configuration:
     ):
         """Test the scenario where we connect and find an OpenSearch node running an unsupported version."""
 
-        os_mock_builder.as_opensearch_1_3()
+        # Mock an unsupported OpenSearch 1.x cluster
+        os_mock_builder._as_opensearch_stateful(
+            {
+                "name": "test-node",
+                "cluster_name": "docker-cluster",
+                "cluster_uuid": "test-uuid",
+                "version": {
+                    "distribution": "opensearch",
+                    "number": "1.3.0",
+                    "build_type": "docker",
+                    "build_hash": "test",
+                    "build_date": "2022-03-15T16:47:57.507843096Z",
+                    "build_snapshot": False,
+                    "lucene_version": "8.10.1",
+                    "minimum_wire_compatibility_version": "6.8.0",
+                    "minimum_index_compatibility_version": "6.0.0",
+                },
+                "tagline": "The OpenSearch Project: https://opensearch.org/",
+            }
+        )
 
         assert await integration_setup() is False
 
