@@ -99,9 +99,7 @@ class LoopHandler:
             try:
                 await self._func()
             except Exception:
-                self._log.debug(
-                    "Unexpected error in loop handler: %s", self._name, exc_info=True
-                )
+                self._log.debug("Unexpected error in loop handler: %s", self._name, exc_info=True)
                 self._log.error("Unexpected error in loop handler: %s", self._name)
                 self.stop()
                 raise

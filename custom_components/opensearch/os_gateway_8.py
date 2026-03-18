@@ -24,8 +24,8 @@ from custom_components.opensearch.errors import (
     UntrustedCertificate,
 )
 from custom_components.opensearch.os_gateway import (
-    OpenSearchGateway,
     GatewaySettings,
+    OpenSearchGateway,
 )
 
 from .logger import LOGGER as BASE_LOGGER
@@ -106,9 +106,7 @@ class OpenSearch2Gateway(OpenSearchGateway):
         verify_hostname: bool = True,
         ca_certs: str | None = None,
         request_timeout: int = 30,
-        minimum_privileges: MappingProxyType[
-            str, Any
-        ] = OS_CHECK_PERMISSIONS_DATASTREAM,
+        minimum_privileges: MappingProxyType[str, Any] = OS_CHECK_PERMISSIONS_DATASTREAM,
         log: Logger = BASE_LOGGER,
     ) -> None:
         """Initialize the gateway and then stop it."""
@@ -195,9 +193,7 @@ class OpenSearch2Gateway(OpenSearchGateway):
             params = {}
             if ignore:
                 params["ignore"] = ignore
-            return await self.client.indices.get_index_template(
-                name=name, params=params
-            )
+            return await self.client.indices.get_index_template(name=name, params=params)
 
     @async_log_enter_exit_debug
     async def put_index_template(self, name, body) -> dict:
@@ -236,9 +232,7 @@ class OpenSearch2Gateway(OpenSearchGateway):
                 action, outcome = result.popitem()
                 if not ok:
                     errcount += 1
-                    self._logger.error(
-                        "failed to %s, error information: %s", action, outcome
-                    )
+                    self._logger.error("failed to %s, error information: %s", action, outcome)
                 else:
                     okcount += 1
 
@@ -246,9 +240,7 @@ class OpenSearch2Gateway(OpenSearchGateway):
                 if errcount == 0:
                     self._logger.info("Successfully published %d documents", okcount)
                 elif errcount > 0:
-                    self._logger.error(
-                        "Failed to publish %d of %d documents", errcount, count
-                    )
+                    self._logger.error("Failed to publish %d of %d documents", errcount, count)
             else:
                 self._logger.debug("Publish skipped, no new events to publish.")
 
@@ -297,27 +289,19 @@ class OpenSearch2Gateway(OpenSearchGateway):
 
         except opensearchpy.AuthenticationException as err:
             raise AuthenticationRequired(
-                append_cause(
-                    err, append_msg("Authentication error connecting to OpenSearch")
-                )
+                append_cause(err, append_msg("Authentication error connecting to OpenSearch"))
             ) from err
 
         except opensearchpy.AuthorizationException as err:
             raise InsufficientPrivileges(
-                append_cause(
-                    err, append_msg("Authorization error connecting to OpenSearch")
-                )
+                append_cause(err, append_msg("Authorization error connecting to OpenSearch"))
             ) from err
 
         except opensearchpy.ConnectionTimeout as err:
-            raise ServerError(
-                append_msg("Connection timeout connecting to OpenSearch")
-            ) from err
+            raise ServerError(append_msg("Connection timeout connecting to OpenSearch")) from err
 
         except opensearchpy.SSLError as err:
-            raise UntrustedCertificate(
-                append_msg(f"Could not complete TLS Handshake. {err.error}")
-            ) from err
+            raise UntrustedCertificate(append_msg(f"Could not complete TLS Handshake. {err.error}")) from err
 
         except opensearchpy.ConnectionError as err:
             # Check if the underlying cause is an SSL certificate error
@@ -329,24 +313,14 @@ class OpenSearch2Gateway(OpenSearchGateway):
                 raise UntrustedCertificate(
                     append_msg(f"Could not complete TLS Handshake. {err.error}")
                 ) from err
-            raise CannotConnect(
-                append_msg(f"Error connecting to OpenSearch. {err.error}")
-            ) from err
+            raise CannotConnect(append_msg(f"Error connecting to OpenSearch. {err.error}")) from err
 
         except opensearchpy.TransportError as err:
-            if (
-                hasattr(err, "status_code")
-                and isinstance(err.status_code, int)
-                and err.status_code >= 400
-            ):
-                raise ServerError(
-                    append_msg(f"Error in request to OpenSearch: {err.status_code}")
-                ) from err
+            if hasattr(err, "status_code") and isinstance(err.status_code, int) and err.status_code >= 400:
+                raise ServerError(append_msg(f"Error in request to OpenSearch: {err.status_code}")) from err
             else:
                 raise CannotConnect(
-                    append_msg(
-                        f"Unknown transport error connecting to OpenSearch: {err.error}"
-                    )
+                    append_msg(f"Unknown transport error connecting to OpenSearch: {err.error}")
                 ) from err
 
         except Exception:

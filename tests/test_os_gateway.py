@@ -25,8 +25,8 @@ from custom_components.opensearch.os_gateway import (
     OpenSearchGateway,
 )
 from custom_components.opensearch.os_gateway_8 import (
-    OpenSearch2Gateway,
     Gateway8Settings,
+    OpenSearch2Gateway,
 )
 from opensearchpy import AsyncOpenSearch
 
@@ -66,9 +66,7 @@ def mock_os_exception(exception, message="None"):
         return AsyncMock(side_effect=exception("TIMEOUT", message, None))
 
     if issubclass(exception, opensearchpy.SSLError):
-        return AsyncMock(
-            side_effect=exception("SSL_ERROR", message, Exception(message))
-        )
+        return AsyncMock(side_effect=exception("SSL_ERROR", message, Exception(message)))
 
     if issubclass(exception, opensearchpy.ConnectionError):
         return AsyncMock(side_effect=exception("N/A", message, Exception(message)))
@@ -113,9 +111,7 @@ async def gateway_mock_shared(gateway_settings) -> OpenSearch2Gateway:
             "index_templates": [
                 {
                     "name": "datastream_metrics",
-                    "index_template": {
-                        "version": index_template_definition.get("version", 0)
-                    },
+                    "index_template": {"version": index_template_definition.get("version", 0)},
                 }
             ]
         }
@@ -150,14 +146,10 @@ async def gateway_mock_shared(gateway_settings) -> OpenSearch2Gateway:
 
 
 @pytest.fixture
-async def gateway_mock_stateful(
-    gateway_mock_shared: OpenSearch2Gateway, mock_logger
-) -> OpenSearch2Gateway:
+async def gateway_mock_stateful(gateway_mock_shared: OpenSearch2Gateway, mock_logger) -> OpenSearch2Gateway:
     """Return a mock OpenSearch client for a Stateful cluster."""
 
-    gateway_mock_shared._client.info = mock_os_response(
-        testconst.CLUSTER_INFO_2DOT14_RESPONSE_BODY
-    )
+    gateway_mock_shared._client.info = mock_os_response(testconst.CLUSTER_INFO_2DOT14_RESPONSE_BODY)
 
     gateway_mock_shared._logger = mock_logger
 
@@ -265,9 +257,7 @@ class Test_Initialization:
     async def test_async_init_unsupported_version(self, gateway_mock_stateful) -> None:
         """Test the async_init method when the target cluster is running an unsupported version."""
 
-        gateway_mock_stateful._client.info = mock_os_response(
-            testconst.CLUSTER_INFO_2DOT0_RESPONSE_BODY
-        )
+        gateway_mock_stateful._client.info = mock_os_response(testconst.CLUSTER_INFO_2DOT0_RESPONSE_BODY)
 
         # 2.0.0 should pass (matches minimum)
         assert await gateway_mock_stateful.async_init() is None
@@ -275,9 +265,7 @@ class Test_Initialization:
     async def test_async_init_unauthenticated(self, gateway_mock_stateful) -> None:
         """Test the async_init method with an unauthenticated session."""
 
-        gateway_mock_stateful._client.info = mock_os_exception(
-            opensearchpy.AuthenticationException
-        )
+        gateway_mock_stateful._client.info = mock_os_exception(opensearchpy.AuthenticationException)
 
         with pytest.raises(AuthenticationRequired):
             await gateway_mock_stateful.async_init()
@@ -293,9 +281,7 @@ class Test_Initialization:
     async def test_async_init_unauthorized(self, gateway_mock_stateful) -> None:
         """Test the async_init method unauthorized."""
 
-        gateway_mock_stateful._client.info = mock_os_exception(
-            opensearchpy.AuthorizationException
-        )
+        gateway_mock_stateful._client.info = mock_os_exception(opensearchpy.AuthorizationException)
 
         with pytest.raises(InsufficientPrivileges):
             assert await gateway_mock_stateful.async_init() is None
@@ -303,9 +289,7 @@ class Test_Initialization:
     async def test_async_init_unreachable(self, gateway_mock_stateful) -> None:
         """Test the async_init method with unreachable OpenSearch."""
 
-        gateway_mock_stateful._client.info = mock_os_exception(
-            opensearchpy.ConnectionTimeout
-        )
+        gateway_mock_stateful._client.info = mock_os_exception(opensearchpy.ConnectionTimeout)
 
         with pytest.raises(CannotConnect):
             assert await gateway_mock_stateful.async_init() is None
@@ -320,21 +304,15 @@ class Test_Public_Functions:
 
     async def test_ping_fail(self, gateway_mock_stateful) -> None:
         """Test the ping method."""
-        gateway_mock_stateful._client.info = mock_os_exception(
-            opensearchpy.AuthenticationException
-        )
+        gateway_mock_stateful._client.info = mock_os_exception(opensearchpy.AuthenticationException)
         with pytest.raises(AuthenticationRequired):
             await gateway_mock_stateful.ping()
 
-        gateway_mock_stateful._client.info = mock_os_exception(
-            opensearchpy.AuthorizationException
-        )
+        gateway_mock_stateful._client.info = mock_os_exception(opensearchpy.AuthorizationException)
         with pytest.raises(AuthenticationRequired):
             await gateway_mock_stateful.ping()
 
-        gateway_mock_stateful._client.info = mock_os_exception(
-            opensearchpy.ConnectionTimeout
-        )
+        gateway_mock_stateful._client.info = mock_os_exception(opensearchpy.ConnectionTimeout)
         assert await gateway_mock_stateful.ping() is False
 
     async def test_has_security(self, gateway_mock_stateful):
@@ -354,9 +332,7 @@ class Test_Public_Functions:
     async def test_rollover_datastream(self, gateway_mock_stateful):
         """Test the get_datastream method."""
 
-        await gateway_mock_stateful.rollover_datastream(
-            "metrics-homeassistant.sensor-default"
-        )
+        await gateway_mock_stateful.rollover_datastream("metrics-homeassistant.sensor-default")
 
         gateway_mock_stateful._client.indices.rollover.assert_called_once_with(
             alias="metrics-homeassistant.sensor-default"
@@ -380,13 +356,11 @@ class Test_Public_Functions:
     async def test_get_index_template_ignore_404(self, gateway_mock_stateful):
         """Test the get_index_template method when the template is missing."""
 
-        gateway_mock_stateful._client.indices.get_index_template = mock_os_response(
-            {"index_templates": []}
-        )
+        gateway_mock_stateful._client.indices.get_index_template = mock_os_response({"index_templates": []})
 
-        assert await gateway_mock_stateful.get_index_template(
-            "datastream_metrics", ignore=[404]
-        ) == {"index_templates": []}
+        assert await gateway_mock_stateful.get_index_template("datastream_metrics", ignore=[404]) == {
+            "index_templates": []
+        }
 
         gateway_mock_stateful._client.indices.get_index_template.assert_called_with(
             name="datastream_metrics", params={"ignore": [404]}
@@ -395,9 +369,7 @@ class Test_Public_Functions:
     async def test_put_index_template(self, gateway_mock_stateful):
         """Test the put_index_template method."""
 
-        await gateway_mock_stateful.put_index_template(
-            "datastream_metrics", index_template_definition
-        )
+        await gateway_mock_stateful.put_index_template("datastream_metrics", index_template_definition)
 
         gateway_mock_stateful._client.indices.put_index_template.assert_called_once_with(
             name="datastream_metrics", body=index_template_definition
@@ -429,9 +401,7 @@ class Test_Public_Functions:
                 },
             )
 
-        with patch(
-            "custom_components.opensearch.os_gateway_8.async_streaming_bulk"
-        ) as mock_streaming_bulk:
+        with patch("custom_components.opensearch.os_gateway_8.async_streaming_bulk") as mock_streaming_bulk:
             mock_streaming_bulk.side_effect = [yield_response()]
 
             await gateway_mock_stateful.bulk(actions=yield_doc())
@@ -444,9 +414,7 @@ class Test_Public_Functions:
     async def test_bulk_nothing_to_do(self, gateway_mock_stateful):
         """Test the bulk method."""
 
-        with patch(
-            "custom_components.opensearch.os_gateway_8.async_streaming_bulk"
-        ) as mock_streaming_bulk:
+        with patch("custom_components.opensearch.os_gateway_8.async_streaming_bulk") as mock_streaming_bulk:
             await gateway_mock_stateful.bulk(actions=[])
 
             assert mock_streaming_bulk.call_count == 1
@@ -476,9 +444,7 @@ class Test_Public_Functions:
             result = await gateway.check_connection()
 
             assert result is True
-            gateway._logger.info.assert_called_once_with(
-                "Connection to OpenSearch is established."
-            )
+            gateway._logger.info.assert_called_once_with("Connection to OpenSearch is established.")
             gateway._logger.error.assert_not_called()
 
         async def test_check_connection_first_time_failure(self, gateway) -> None:
@@ -488,9 +454,7 @@ class Test_Public_Functions:
             result = await gateway.check_connection()
 
             assert result is False
-            gateway._logger.error.assert_called_once_with(
-                "Failed to establish connection to OpenSearch."
-            )
+            gateway._logger.error.assert_called_once_with("Failed to establish connection to OpenSearch.")
             gateway._logger.info.assert_not_called()
 
         async def test_check_connection_maintained(self, gateway) -> None:
@@ -501,9 +465,7 @@ class Test_Public_Functions:
             result = await gateway.check_connection()
 
             assert result is True
-            gateway._logger.debug.assert_called_once_with(
-                "Connection to OpenSearch is still available."
-            )
+            gateway._logger.debug.assert_called_once_with("Connection to OpenSearch is still available.")
 
         async def test_check_connection_lost(self, gateway) -> None:
             """Test check_connection method when connection is lost."""
@@ -513,9 +475,7 @@ class Test_Public_Functions:
             result = await gateway.check_connection()
 
             assert result is False
-            gateway._logger.error.assert_called_once_with(
-                "Connection to OpenSearch has been lost."
-            )
+            gateway._logger.error.assert_called_once_with("Connection to OpenSearch has been lost.")
             gateway._logger.debug.assert_not_called()
 
         async def test_check_connection_down(self, gateway) -> None:
@@ -526,9 +486,7 @@ class Test_Public_Functions:
             result = await gateway.check_connection()
 
             assert result is False
-            gateway._logger.debug.assert_called_once_with(
-                "Connection to OpenSearch is still down."
-            )
+            gateway._logger.debug.assert_called_once_with("Connection to OpenSearch is still down.")
 
         async def test_check_connection_reestablished(self, gateway) -> None:
             """Test check_connection method when connection is reestablished."""
@@ -538,9 +496,7 @@ class Test_Public_Functions:
             result = await gateway.check_connection()
 
             assert result is True
-            gateway._logger.info.assert_called_once_with(
-                "Connection to OpenSearch has been reestablished."
-            )
+            gateway._logger.info.assert_called_once_with("Connection to OpenSearch has been reestablished.")
 
 
 class Test_Exception_Conversion:
@@ -575,9 +531,7 @@ class Test_Exception_Conversion:
                 "Could not complete TLS Handshake",
             ),
             (
-                opensearchpy.ConnectionError(
-                    "N/A", "Test Case", Exception("Test Case")
-                ),
+                opensearchpy.ConnectionError("N/A", "Test Case", Exception("Test Case")),
                 CannotConnect,
                 "Error connecting to OpenSearch",
             ),
@@ -603,9 +557,7 @@ class Test_Exception_Conversion:
         self, gateway_mock_shared, exception, expected_exception, message
     ):
         """Test the error converter handling of a bulk index error."""
-        with pytest.raises(
-            expected_exception, match=message
-        ), gateway_mock_shared._error_converter():
+        with pytest.raises(expected_exception, match=message), gateway_mock_shared._error_converter():
             raise exception
 
 
@@ -675,9 +627,7 @@ class Test_Errors_e2e:
             (client_exceptions.ClientError(), CannotConnect),
             # child exceptions of ClientError
             (
-                client_exceptions.ClientResponseError(
-                    request_info=MagicMock(), history=MagicMock()
-                ),
+                client_exceptions.ClientResponseError(request_info=MagicMock(), history=MagicMock()),
                 CannotConnect,
             ),
             (client_exceptions.ClientPayloadError(), CannotConnect),

@@ -60,11 +60,7 @@ class Test_Initialization:
                 "index_templates": [
                     {
                         "name": "datastream_metrics",
-                        "index_template": {
-                            "version": index_template.index_template_definition[
-                                "version"
-                            ]
-                        },
+                        "index_template": {"version": index_template.index_template_definition["version"]},
                     }
                 ]
             },
@@ -80,9 +76,7 @@ class Test_Initialization:
         """Test initialization of the DatastreamManager with an existing OpenSearch cluster that requires an index template update and rollover."""
         datastream_manager._gateway.get_index_template = AsyncMock(
             return_value={
-                "index_templates": [
-                    {"name": "datastream_metrics", "index_template": {"version": 1}}
-                ]
+                "index_templates": [{"name": "datastream_metrics", "index_template": {"version": 1}}]
             },
         )
 

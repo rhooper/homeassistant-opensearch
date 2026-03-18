@@ -32,9 +32,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 base_path = "custom_components.opensearch"
 config_flow_setup_entry = f"{base_path}.async_setup_entry"
-gateway_async_init = (
-    f"{base_path}.os_gateway_8.OpenSearch2Gateway.async_init_then_stop"
-)
+gateway_async_init = f"{base_path}.os_gateway_8.OpenSearch2Gateway.async_init_then_stop"
 
 
 async def add_config_entry_to_hass(hass: HomeAssistant, config_entry):
@@ -60,9 +58,7 @@ class Test_Setup_Flows:
     @pytest.fixture
     async def initial_form(self, hass):
         """Perform the initial form steps."""
-        result = await hass.config_entries.flow.async_init(
-            compconst.DOMAIN, context={"source": "user"}
-        )
+        result = await hass.config_entries.flow.async_init(compconst.DOMAIN, context={"source": "user"})
 
         # We should get a form to fill in the URL
         assert result is not None
@@ -116,13 +112,8 @@ class Test_Setup_Flows:
         # The entry should be now created
         assert "type" in result and result["type"] == FlowResultType.CREATE_ENTRY
         assert "title" in result and result["title"] == testconst.CONFIG_ENTRY_DATA_URL
-        assert "data" in result and result["data"] == {
-            testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL
-        }
-        assert (
-            "options" in result
-            and result["options"] == OpenSearchOptionsFlowHandler.default_options
-        )
+        assert "data" in result and result["data"] == {testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL}
+        assert "options" in result and result["options"] == OpenSearchOptionsFlowHandler.default_options
 
     @pytest.mark.parametrize(
         ("exception", "step_id"),
@@ -132,9 +123,7 @@ class Test_Setup_Flows:
             (AuthenticationRequired, "basic_auth"),
         ],
     )
-    async def test_url_to_extra_steps(
-        self, hass: HomeAssistant, initial_form, exception, step_id
-    ):
+    async def test_url_to_extra_steps(self, hass: HomeAssistant, initial_form, exception, step_id):
         """Test transitions from the url form to other forms."""
         with patch(gateway_async_init, side_effect=exception()):
             result = await hass.config_entries.flow.async_configure(
@@ -145,9 +134,7 @@ class Test_Setup_Flows:
         assert "type" in result and result["type"] == FlowResultType.FORM
         assert "step_id" in result and result["step_id"] == step_id
 
-    async def test_url_to_certificate_issues_to_done(
-        self, hass: HomeAssistant, certificate_form
-    ):
+    async def test_url_to_certificate_issues_to_done(self, hass: HomeAssistant, certificate_form):
         """Test transitions from the ssl settings form to entry creation."""
         with patch(gateway_async_init, return_value=True):
             result = await hass.config_entries.flow.async_configure(
@@ -165,10 +152,7 @@ class Test_Setup_Flows:
             compconst.CONF_SSL_VERIFY_HOSTNAME: True,
             haconst.CONF_VERIFY_SSL: True,
         }
-        assert (
-            "options" in result
-            and result["options"] == OpenSearchOptionsFlowHandler.default_options
-        )
+        assert "options" in result and result["options"] == OpenSearchOptionsFlowHandler.default_options
 
     @pytest.mark.parametrize(
         ("exception", "step_id", "errors"),
@@ -204,9 +188,7 @@ class Test_Setup_Flows:
         assert "step_id" in result and result["step_id"] == step_id
         assert "errors" in result and result["errors"] == errors
 
-    async def test_url_to_authentication_issues_to_done(
-        self, hass: HomeAssistant, authentication_form
-    ):
+    async def test_url_to_authentication_issues_to_done(self, hass: HomeAssistant, authentication_form):
         """Test transitions from the authentication form to entry creation."""
 
         settings = {
@@ -227,10 +209,7 @@ class Test_Setup_Flows:
             testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL,
             **settings,
         }
-        assert (
-            "options" in result
-            and result["options"] == OpenSearchOptionsFlowHandler.default_options
-        )
+        assert "options" in result and result["options"] == OpenSearchOptionsFlowHandler.default_options
 
     @pytest.mark.parametrize(
         ("settings", "exception", "errors"),
@@ -405,6 +384,4 @@ class Test_Options_Flow:
         assert "type" in result and result["type"] is FlowResultType.CREATE_ENTRY
 
         # The options should be updated, but they are stored under data
-        assert "data" in result and result["data"] == {
-            **testconst.CONFIG_ENTRY_DEFAULT_OPTIONS
-        }
+        assert "data" in result and result["data"] == {**testconst.CONFIG_ENTRY_DEFAULT_OPTIONS}

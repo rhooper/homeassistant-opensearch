@@ -28,9 +28,7 @@ from homeassistant.const import (
     ids=["URL and all auth params", "Only URL and username", "Only URL"],
 )
 @pytest.mark.parametrize("options", [{}])
-async def test_async_get_config_entry_diagnostics(
-    hass, config_entry, data, options, snapshot
-):
+async def test_async_get_config_entry_diagnostics(hass, config_entry, data, options, snapshot):
     """Test async_get_config_entry_diagnostics function."""
 
     result = await async_get_config_entry_diagnostics(hass, config_entry)

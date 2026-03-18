@@ -15,9 +15,7 @@ def skip_dict_values(d: dict, skip_values: list[Any]) -> dict:
     return {k: v for k, v in d.items() if v not in skip_values}
 
 
-def keep_dict_keys(
-    d: dict, keys: list[str] | None = None, prefixes: list[str] | None = None
-) -> dict:
+def keep_dict_keys(d: dict, keys: list[str] | None = None, prefixes: list[str] | None = None) -> dict:
     """Trim keys that match keep_keys. Works best on a flattened dict."""
 
     new_dict = {}
@@ -26,13 +24,7 @@ def keep_dict_keys(
         new_dict.update({k: v for k, v in d.items() if k in keys})
 
     if prefixes:
-        new_dict.update(
-            {
-                k: v
-                for k, v in d.items()
-                if any(k.startswith(prefix) for prefix in prefixes)
-            }
-        )
+        new_dict.update({k: v for k, v in d.items() if any(k.startswith(prefix) for prefix in prefixes)})
 
     return new_dict
 

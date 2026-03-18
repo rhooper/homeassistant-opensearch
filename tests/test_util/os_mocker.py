@@ -70,10 +70,7 @@ class os_mocker:
         # each mock_call is a tuple of method, url, body, and headers
 
         if not include_headers:
-            return [
-                (method, url, body)
-                for method, url, body, headers in self.mocker.mock_calls
-            ]
+            return [(method, url, body) for method, url, body, headers in self.mocker.mock_calls]
 
         return self.mocker.mock_calls
 
@@ -149,9 +146,7 @@ class os_mocker:
         """Mock OpenSearch version."""
 
         self.base_url = (
-            testconst.CONFIG_ENTRY_DATA_URL
-            if with_security
-            else testconst.CONFIG_ENTRY_DATA_URL_INSECURE
+            testconst.CONFIG_ENTRY_DATA_URL if with_security else testconst.CONFIG_ENTRY_DATA_URL_INSECURE
         )
 
         self._add_fail_after(
@@ -172,19 +167,13 @@ class os_mocker:
 
     def as_opensearch_1_3(self, with_security: bool = True) -> os_mocker:
         """Mock OpenSearch 1.3."""
-        return self._as_opensearch_stateful(
-            testconst.CLUSTER_INFO_1DOT3_RESPONSE_BODY, with_security
-        )
+        return self._as_opensearch_stateful(testconst.CLUSTER_INFO_1DOT3_RESPONSE_BODY, with_security)
 
     def as_opensearch_2_0(self, with_security: bool = True) -> os_mocker:
         """Mock OpenSearch 2.0."""
-        return self._as_opensearch_stateful(
-            testconst.CLUSTER_INFO_2DOT0_RESPONSE_BODY, with_security
-        )
+        return self._as_opensearch_stateful(testconst.CLUSTER_INFO_2DOT0_RESPONSE_BODY, with_security)
 
-    def as_opensearch_2_17(
-        self, with_security: bool = True, fail_after=None
-    ) -> os_mocker:
+    def as_opensearch_2_17(self, with_security: bool = True, fail_after=None) -> os_mocker:
         """Mock OpenSearch 2.17."""
         return self._as_opensearch_stateful(
             testconst.CLUSTER_INFO_2DOT17_RESPONSE_BODY,
@@ -195,9 +184,7 @@ class os_mocker:
     def as_opensearch_2_14(self, with_security: bool = True):
         """Mock OpenSearch 2.14."""
 
-        return self._as_opensearch_stateful(
-            testconst.CLUSTER_INFO_2DOT14_RESPONSE_BODY, with_security
-        )
+        return self._as_opensearch_stateful(testconst.CLUSTER_INFO_2DOT14_RESPONSE_BODY, with_security)
 
     def with_incorrect_permissions(self):
         """Mock the user being properly authenticated."""

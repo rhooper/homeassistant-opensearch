@@ -40,9 +40,7 @@ type OpenSearchIntegrationConfigEntry = ConfigEntry[OpenSearchIntegration]
 
 
 @async_log_enter_exit_info
-async def async_setup_entry(
-    hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry
-) -> bool:
+async def async_setup_entry(hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry) -> bool:
     """Set up integration via config flow."""
 
     # Create an specific logger for this config entry
@@ -53,9 +51,7 @@ async def async_setup_entry(
     _logger.info("Initializing integration v%s for %s", version, config_entry.title)
 
     try:
-        integration = OpenSearchIntegration(
-            hass=hass, config_entry=config_entry, log=_logger
-        )
+        integration = OpenSearchIntegration(hass=hass, config_entry=config_entry, log=_logger)
         await integration.async_init()
     except (UnsupportedVersion, CannotConnect) as err:
         raise ConfigEntryNotReady(err) from err
@@ -73,9 +69,7 @@ async def async_setup_entry(
 
 
 @async_log_enter_exit_info
-async def async_unload_entry(
-    hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry
-) -> bool:
+async def async_unload_entry(hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry) -> bool:
     """Teardown integration."""
 
     if (
@@ -96,19 +90,15 @@ async def async_unload_entry(
 
 
 @async_log_enter_exit_debug
-async def async_migrate_entry(
-    hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry
-) -> bool:
+async def async_migrate_entry(hass: HomeAssistant, config_entry: OpenSearchIntegrationConfigEntry) -> bool:
     """Handle migration of config entry."""
     if config_entry.version == OpenSearchFlowHandler.VERSION:
         return True
 
     try:
-        migrated_data, migrated_options, migrated_version = (
-            migrate_data_and_options_to_version(
-                config_entry,
-                OpenSearchFlowHandler.VERSION,
-            )
+        migrated_data, migrated_options, migrated_version = migrate_data_and_options_to_version(
+            config_entry,
+            OpenSearchFlowHandler.VERSION,
         )
     except Exception:  # noqa: BLE001
         LOGGER.exception(
@@ -164,9 +154,7 @@ def migrate_data_and_options_to_version(
 
     end_version = current_version
 
-    LOGGER.info(
-        "Migration from version %s to version %s successful", begin_version, end_version
-    )
+    LOGGER.info("Migration from version %s to version %s successful", begin_version, end_version)
 
     return data, options, end_version
 
@@ -320,9 +308,7 @@ def migrate_to_version_7(data: dict, options: dict) -> tuple[dict, dict]:
 
     # Lowercase values in array options["change_detection_type"]
     if "change_detection_type" in options:
-        options["change_detection_type"] = [
-            x.lower() for x in options["change_detection_type"]
-        ]
+        options["change_detection_type"] = [x.lower() for x in options["change_detection_type"]]
 
     for key in keys_to_remove:
         if key in options:

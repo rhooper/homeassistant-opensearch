@@ -90,9 +90,7 @@ class OpenSearchGateway(ABC):
             raise UnsupportedVersion(msg)
 
         # Check minimum privileges
-        if await self.has_security() and not await self.has_privileges(
-            self.settings.minimum_privileges
-        ):
+        if await self.has_security() and not await self.has_privileges(self.settings.minimum_privileges):
             raise InsufficientPrivileges
 
     @property
@@ -116,9 +114,7 @@ class OpenSearchGateway(ABC):
         verify_hostname: bool = True,
         ca_certs: str | None = None,
         request_timeout: int = 30,
-        minimum_privileges: MappingProxyType[
-            str, Any
-        ] = OS_CHECK_PERMISSIONS_DATASTREAM,
+        minimum_privileges: MappingProxyType[str, Any] = OS_CHECK_PERMISSIONS_DATASTREAM,
         log: Logger = BASE_LOGGER,
     ) -> None:
         """Initialize the gateway and then stop it."""
@@ -206,9 +202,7 @@ class OpenSearchGateway(ABC):
 
         return self._meets_minimum_version(info, OPENSEARCH_MINIMUM_VERSION)
 
-    def _meets_minimum_version(
-        self, cluster_info: dict, minimum_version: tuple[int, int]
-    ) -> bool:
+    def _meets_minimum_version(self, cluster_info: dict, minimum_version: tuple[int, int]) -> bool:
         """Check if the OpenSearch version is supported."""
 
         version_number_parts = cluster_info["version"]["number"].split(".")
@@ -220,7 +214,5 @@ class OpenSearchGateway(ABC):
         minimum_minor = minimum_version[1]
 
         return (
-            current_major > minimum_major
-            or current_major == minimum_major
-            and current_minor >= minimum_minor
+            current_major > minimum_major or current_major == minimum_major and current_minor >= minimum_minor
         )

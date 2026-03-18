@@ -157,16 +157,10 @@ index_template_definition: dict[str, Any] = {
                         "location": {"type": "geo_point"},
                         "hostname": {"ignore_above": 1024, "type": "keyword"},
                         "name": {"ignore_above": 1024, "type": "keyword"},
-                        "os": {
-                            "properties": {
-                                "name": {"ignore_above": 1024, "type": "keyword"}
-                            }
-                        },
+                        "os": {"properties": {"name": {"ignore_above": 1024, "type": "keyword"}}},
                     }
                 },
-                "ecs": {
-                    "properties": {"version": {"ignore_above": 1024, "type": "keyword"}}
-                },
+                "ecs": {"properties": {"version": {"ignore_above": 1024, "type": "keyword"}}},
             },
         },
         "settings": {

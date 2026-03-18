@@ -161,9 +161,7 @@ class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN)
 
             except UntrustedCertificate:
                 BASE_LOGGER.debug("Certificate issue", exc_info=True)
-                return await self.async_step_certificate_issues(
-                    errors={"base": "untrusted_certificate"}
-                )
+                return await self.async_step_certificate_issues(errors={"base": "untrusted_certificate"})
 
             except CannotConnect:
                 BASE_LOGGER.debug("Cannot connect", exc_info=True)
@@ -210,21 +208,15 @@ class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN)
                     username=user_input.get(CONF_USERNAME),
                     password=user_input.get(CONF_PASSWORD),
                     verify_certs=self._prospective_config.get(CONF_VERIFY_SSL, True),
-                    verify_hostname=self._prospective_config.get(
-                        CONF_SSL_VERIFY_HOSTNAME, True
-                    ),
+                    verify_hostname=self._prospective_config.get(CONF_SSL_VERIFY_HOSTNAME, True),
                     ca_certs=self._prospective_config.get(CONF_SSL_CA_PATH),
                 )
             except InsufficientPrivileges:
                 BASE_LOGGER.debug("Insufficient Privileges", exc_info=True)
-                return await self.async_step_basic_auth(
-                    errors={"base": "insufficient_privileges"}
-                )
+                return await self.async_step_basic_auth(errors={"base": "insufficient_privileges"})
             except AuthenticationRequired:
                 BASE_LOGGER.debug("Invalid basic authentication", exc_info=True)
-                return await self.async_step_basic_auth(
-                    errors={"base": "invalid_basic_auth"}
-                )
+                return await self.async_step_basic_auth(errors={"base": "invalid_basic_auth"})
 
             # We are authenticated, update settings and complete flow
             self._prospective_config.update(user_input)
@@ -265,9 +257,7 @@ class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN)
 
         title: str = self._prospective_config[CONF_URL]
 
-        return self.async_create_entry(
-            title=title, data=self._prospective_config, options=default_options
-        )
+        return self.async_create_entry(title=title, data=self._prospective_config, options=default_options)
 
     @staticmethod
     @callback
@@ -275,9 +265,7 @@ class OpenSearchFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN)
         """Get the options flow for this handler."""
         return OpenSearchOptionsFlowHandler(config_entry)
 
-    async def async_step_reauth(
-        self, user_input: dict | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_reauth(self, user_input: dict | None = None) -> ConfigFlowResult:
         """Handle reauthorization."""
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         # Entry is never None, but mypy doesn't know that

@@ -90,9 +90,7 @@ class Test_Normal_Configuration:
         """Test the full integration setup and execution with an error during the check connection step of publishing."""
         os_mock_builder.as_opensearch_2_17(
             fail_after=4
-        ).with_correct_permissions().without_index_template().respond_to_bulk(
-            status=200
-        )
+        ).with_correct_permissions().without_index_template().respond_to_bulk(status=200)
 
         # Queue an entity state change
         hass.states.async_set(entity.entity_id, "value")
@@ -256,10 +254,7 @@ class Test_Normal_Configuration:
         assert config_entry.version == OpenSearchFlowHandler.VERSION
 
         assert config_entry.state is ConfigEntryState.SETUP_RETRY
-        assert (
-            config_entry.reason
-            == "OpenSearch version is not supported. Minimum version: (2, 0)"
-        )
+        assert config_entry.reason == "OpenSearch version is not supported. Minimum version: (2, 0)"
 
 
 class Test_Publish_Disabled:

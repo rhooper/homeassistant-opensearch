@@ -88,9 +88,7 @@ class DatastreamManager:
     @async_log_enter_exit_debug
     async def _update_index_template(self) -> None:
         """Update the specified index template and rollover the indices."""
-        self._logger.info(
-            "Updating Index template and rolling over Home Assistant datastreams"
-        )
+        self._logger.info("Updating Index template and rolling over Home Assistant datastreams")
 
         await self._install_index_template()
 

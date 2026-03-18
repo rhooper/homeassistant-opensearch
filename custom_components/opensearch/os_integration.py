@@ -28,17 +28,17 @@ from custom_components.opensearch.const import (
     OS_CHECK_PERMISSIONS_DATASTREAM,
 )
 from custom_components.opensearch.errors import OSIntegrationException
-from custom_components.opensearch.os_datastream_manager import DatastreamManager
-from custom_components.opensearch.os_gateway_8 import (
-    OpenSearch2Gateway,
-    Gateway8Settings,
-)
-from custom_components.opensearch.os_publish_pipeline import Pipeline, PipelineSettings
 from custom_components.opensearch.logger import LOGGER as BASE_LOGGER
 from custom_components.opensearch.logger import (
     async_log_enter_exit_debug,
     log_enter_exit_debug,
 )
+from custom_components.opensearch.os_datastream_manager import DatastreamManager
+from custom_components.opensearch.os_gateway_8 import (
+    Gateway8Settings,
+    OpenSearch2Gateway,
+)
+from custom_components.opensearch.os_publish_pipeline import Pipeline, PipelineSettings
 
 if TYPE_CHECKING:  # pragma: no cover
     from logging import Logger
@@ -52,9 +52,7 @@ class OpenSearchIntegration:
     """Integration for publishing entity state change events to OpenSearch."""
 
     @log_enter_exit_debug
-    def __init__(
-        self, hass: HomeAssistant, config_entry: ConfigEntry, log: Logger = BASE_LOGGER
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry, log: Logger = BASE_LOGGER) -> None:
         """Integration initialization."""
 
         self._hass = hass
@@ -68,22 +66,16 @@ class OpenSearchIntegration:
         gateway_settings: Gateway8Settings = self.build_gateway_parameters(
             config_entry=self._config_entry,
         )
-        self._gateway = OpenSearch2Gateway(
-            log=self._logger, gateway_settings=gateway_settings
-        )
+        self._gateway = OpenSearch2Gateway(log=self._logger, gateway_settings=gateway_settings)
 
         # Initialize our publishing pipeline
         manager_parameters = self.build_pipeline_manager_parameters(
             hass=self._hass, gateway=self._gateway, config_entry=self._config_entry
         )
-        self._pipeline_manager = Pipeline.Manager(
-            log=self._logger, **manager_parameters
-        )
+        self._pipeline_manager = Pipeline.Manager(log=self._logger, **manager_parameters)
 
         # Initialize our Datastream manager
-        self._datastream_manager = DatastreamManager(
-            log=self._logger, gateway=self._gateway
-        )
+        self._datastream_manager = DatastreamManager(log=self._logger, gateway=self._gateway)
 
     @async_log_enter_exit_debug
     async def async_init(self) -> None:
@@ -110,9 +102,7 @@ class OpenSearchIntegration:
     def build_gateway_parameters(
         cls,
         config_entry: ConfigEntry,
-        minimum_privileges: MappingProxyType[
-            str, Any
-        ] = OS_CHECK_PERMISSIONS_DATASTREAM,
+        minimum_privileges: MappingProxyType[str, Any] = OS_CHECK_PERMISSIONS_DATASTREAM,
     ) -> Gateway8Settings:
         """Build the parameters for the OpenSearch gateway."""
         return Gateway8Settings(
@@ -127,9 +117,7 @@ class OpenSearchIntegration:
         )
 
     @classmethod
-    def build_pipeline_manager_parameters(
-        cls, hass, gateway, config_entry: ConfigEntry
-    ) -> dict:
+    def build_pipeline_manager_parameters(cls, hass, gateway, config_entry: ConfigEntry) -> dict:
         """Build the parameters for the OpenSearch pipeline manager."""
 
         # Options are never none, but mypy doesn't know that
@@ -140,35 +128,17 @@ class OpenSearchIntegration:
             publish_frequency=config_entry.options[CONF_PUBLISH_FREQUENCY],
             change_detection_type=config_entry.options[CONF_CHANGE_DETECTION_TYPE],
             tags=config_entry.options[CONF_TAGS],
-            debug_attribute_filtering=config_entry.options.get(
-                CONF_DEBUG_ATTRIBUTE_FILTERING, False
-            ),
+            debug_attribute_filtering=config_entry.options.get(CONF_DEBUG_ATTRIBUTE_FILTERING, False),
             include_targets=config_entry.options[CONF_INCLUDE_TARGETS],
             exclude_targets=config_entry.options[CONF_EXCLUDE_TARGETS],
-            included_areas=config_entry.options[CONF_TARGETS_TO_INCLUDE].get(
-                "area_id", []
-            ),
-            excluded_areas=config_entry.options[CONF_TARGETS_TO_EXCLUDE].get(
-                "area_id", []
-            ),
-            included_labels=config_entry.options[CONF_TARGETS_TO_INCLUDE].get(
-                "label_id", []
-            ),
-            excluded_labels=config_entry.options[CONF_TARGETS_TO_EXCLUDE].get(
-                "label_id", []
-            ),
-            included_devices=config_entry.options[CONF_TARGETS_TO_INCLUDE].get(
-                "device_id", []
-            ),
-            excluded_devices=config_entry.options[CONF_TARGETS_TO_EXCLUDE].get(
-                "device_id", []
-            ),
-            included_entities=config_entry.options[CONF_TARGETS_TO_INCLUDE].get(
-                "entity_id", []
-            ),
-            excluded_entities=config_entry.options[CONF_TARGETS_TO_EXCLUDE].get(
-                "entity_id", []
-            ),
+            included_areas=config_entry.options[CONF_TARGETS_TO_INCLUDE].get("area_id", []),
+            excluded_areas=config_entry.options[CONF_TARGETS_TO_EXCLUDE].get("area_id", []),
+            included_labels=config_entry.options[CONF_TARGETS_TO_INCLUDE].get("label_id", []),
+            excluded_labels=config_entry.options[CONF_TARGETS_TO_EXCLUDE].get("label_id", []),
+            included_devices=config_entry.options[CONF_TARGETS_TO_INCLUDE].get("device_id", []),
+            excluded_devices=config_entry.options[CONF_TARGETS_TO_EXCLUDE].get("device_id", []),
+            included_entities=config_entry.options[CONF_TARGETS_TO_INCLUDE].get("entity_id", []),
+            excluded_entities=config_entry.options[CONF_TARGETS_TO_EXCLUDE].get("entity_id", []),
         )
 
         return {"hass": hass, "gateway": gateway, "settings": settings}
