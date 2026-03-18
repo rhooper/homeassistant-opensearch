@@ -1,4 +1,4 @@
-"""Tests for the Elasticsearch integration initialization."""
+"""Tests for the OpenSearch integration initialization."""
 
 from __future__ import annotations
 
@@ -7,16 +7,16 @@ from unittest import mock
 from unittest.mock import AsyncMock
 
 import pytest
-from custom_components.elasticsearch import (
+from custom_components.opensearch import (
     async_migrate_entry,
     async_setup_entry,
     async_unload_entry,
     migrate_data_and_options_to_version,
 )
-from custom_components.elasticsearch.config_flow import ElasticFlowHandler
-from custom_components.elasticsearch.const import DOMAIN as ELASTIC_DOMAIN
-from custom_components.elasticsearch.errors import ESIntegrationException
-from custom_components.elasticsearch.es_integration import ElasticIntegration
+from custom_components.opensearch.config_flow import OpenSearchFlowHandler
+from custom_components.opensearch.const import DOMAIN as OPENSEARCH_DOMAIN
+from custom_components.opensearch.errors import OSIntegrationException
+from custom_components.opensearch.os_integration import OpenSearchIntegration
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState, ConfigFlow
 from homeassistant.setup import async_setup_component
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.loader import ComponentProtocol, Integration
 
-MODULE = "custom_components.elasticsearch"
+MODULE = "custom_components.opensearch"
 
 
 @pytest.fixture(name="mock_flow")
@@ -62,7 +62,7 @@ async def mock_module_fixture(hass: HomeAssistant) -> MockModule:
     """Return a mock module useful for initializing a mock integration."""
 
     setup = {
-        "domain": ELASTIC_DOMAIN,
+        "domain": OPENSEARCH_DOMAIN,
         "async_setup_entry": AsyncMock(wraps=async_setup_entry),
         "async_unload_entry": AsyncMock(wraps=async_unload_entry),
         "async_migrate_entry": AsyncMock(wraps=async_migrate_entry),
@@ -74,13 +74,13 @@ async def mock_module_fixture(hass: HomeAssistant) -> MockModule:
 @pytest.fixture(name="mock_platform")
 async def mock_platform_fixture(hass: HomeAssistant):
     """Set up the platform for testing."""
-    return new_mock_platform(hass, f"{ELASTIC_DOMAIN}.config_flow")
+    return new_mock_platform(hass, f"{OPENSEARCH_DOMAIN}.config_flow")
 
 
 @pytest.fixture
 def _config_flow(mock_platform, mock_flow):
-    """Set up the Elastic Integration config flow."""
-    with new_mock_config_flow(ELASTIC_DOMAIN, mock_flow):
+    """Set up the OpenSearch Integration config flow."""
+    with new_mock_config_flow(OPENSEARCH_DOMAIN, mock_flow):
         yield
 
 
@@ -95,7 +95,7 @@ async def mock_integration_fixture(hass: HomeAssistant, _config_flow, mock_modul
 
 
 class Test_Config_Migration:
-    """Test the Elasticsearch integration configuration migrations."""
+    """Test the OpenSearch integration configuration migrations."""
 
     def _test_config_data_options_migration_to_version(
         self,
@@ -110,11 +110,11 @@ class Test_Config_Migration:
         """Test config data and options migration scenarios."""
         mock_entry = MockConfigEntry(
             unique_id="mock migration",
-            domain=ELASTIC_DOMAIN,
+            domain=OPENSEARCH_DOMAIN,
             version=before_version,
             data=before_data,
             options=before_options,
-            title="ES Config",
+            title="OS Config",
         )
 
         migrated_data, migrated_options, end_version = migrate_data_and_options_to_version(
@@ -505,26 +505,26 @@ class Test_Config_Migration:
 
 
 class Test_Setup:
-    """Test the Elasticsearch integration setup."""
+    """Test the OpenSearch integration setup."""
 
     async def test_no_config_entry(self, hass: HomeAssistant) -> None:
         """Test initialization with no config entry."""
 
-        assert await async_setup_component(hass, ELASTIC_DOMAIN, {}) is True
+        assert await async_setup_component(hass, OPENSEARCH_DOMAIN, {}) is True
 
-        assert ELASTIC_DOMAIN in hass.config.components
+        assert OPENSEARCH_DOMAIN in hass.config.components
 
         await hass.async_block_till_done()
 
 
 class Test_Public_Methods:
-    """Test the public methods of the Elasticsearch integration initialization."""
+    """Test the public methods of the OpenSearch integration initialization."""
 
     @pytest.fixture
     def _block_async_init(self):
         """Block async init."""
         with mock.patch(
-            f"{MODULE}.es_integration.ElasticIntegration.async_init",
+            f"{MODULE}.os_integration.OpenSearchIntegration.async_init",
             return_value=True,
         ):
             yield
@@ -534,11 +534,11 @@ class Test_Public_Methods:
         """Block async init."""
         with (
             mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.__init__",
+                f"{MODULE}.os_integration.OpenSearchIntegration.__init__",
                 return_value=None,
             ),
             mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.async_init",
+                f"{MODULE}.os_integration.OpenSearchIntegration.async_init",
                 return_value=True,
             ),
         ):
@@ -548,7 +548,7 @@ class Test_Public_Methods:
     def _block_shutdown(self):
         """Block async shutdown."""
         with mock.patch(
-            f"{MODULE}.es_integration.ElasticIntegration.async_shutdown",
+            f"{MODULE}.os_integration.OpenSearchIntegration.async_shutdown",
             return_value=True,
         ):
             yield
@@ -578,11 +578,11 @@ class Test_Public_Methods:
         component.async_migrate_entry = AsyncMock(return_value=True)
         with (
             mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.__init__",
+                f"{MODULE}.os_integration.OpenSearchIntegration.__init__",
                 return_value=None,
             ) as mock_integration_init,
             mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.async_init",
+                f"{MODULE}.os_integration.OpenSearchIntegration.async_init",
                 return_value=True,
             ) as mock_integration_async_init,
         ):
@@ -612,7 +612,7 @@ class Test_Public_Methods:
 
         # Ensure the integration is saved into runtime_data
         assert config_entry.runtime_data is not None
-        assert isinstance(config_entry.runtime_data, ElasticIntegration)
+        assert isinstance(config_entry.runtime_data, OpenSearchIntegration)
 
         assert await hass.config_entries.async_unload(config_entry.entry_id)
         await hass.async_block_till_done()
@@ -635,7 +635,7 @@ class Test_Public_Methods:
 
         # Ensure the integration is saved into runtime_data
         assert config_entry.runtime_data is not None
-        assert isinstance(config_entry.runtime_data, ElasticIntegration)
+        assert isinstance(config_entry.runtime_data, OpenSearchIntegration)
 
         assert await hass.config_entries.async_unload(config_entry.entry_id)
         await hass.async_block_till_done()
@@ -650,12 +650,12 @@ class Test_Public_Methods:
         """Test setting up the integration."""
         with (
             mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.__init__",
+                f"{MODULE}.os_integration.OpenSearchIntegration.__init__",
                 return_value=None,
             ),
             mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.async_init",
-                side_effect=ESIntegrationException,
+                f"{MODULE}.os_integration.OpenSearchIntegration.async_init",
+                side_effect=OSIntegrationException,
             ),
         ):
             assert config_entry.state is ConfigEntryState.NOT_LOADED
@@ -674,11 +674,11 @@ class Test_Public_Methods:
         """Test setting up the integration."""
         with (
             mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.__init__",
+                f"{MODULE}.os_integration.OpenSearchIntegration.__init__",
                 return_value=None,
             ),
             mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.async_init",
+                f"{MODULE}.os_integration.OpenSearchIntegration.async_init",
                 side_effect=Exception,
             ),
         ):
@@ -708,8 +708,8 @@ class Test_Public_Methods:
 
         assert config_entry.state is ConfigEntryState.LOADED
 
-        # Mock the ES Integration Object stored in runtime_data
-        setattr(config_entry, "runtime_data", AsyncMock(spec=ElasticIntegration))
+        # Mock the OpenSearch Integration Object stored in runtime_data
+        setattr(config_entry, "runtime_data", AsyncMock(spec=OpenSearchIntegration))
 
         with mock.patch.object(
             config_entry.runtime_data, "async_shutdown", return_value=True
@@ -736,7 +736,7 @@ class Test_Public_Methods:
 
         assert config_entry.state is ConfigEntryState.NOT_LOADED
 
-        assert config_entry.version == ElasticFlowHandler.VERSION
+        assert config_entry.version == OpenSearchFlowHandler.VERSION
 
         # Mock migrate_data_and_options_to_version and make sure it wasn't called during setup
         with mock.patch(
@@ -749,7 +749,7 @@ class Test_Public_Methods:
 
             assert config_entry.state is ConfigEntryState.LOADED
 
-            assert config_entry.version == ElasticFlowHandler.VERSION
+            assert config_entry.version == OpenSearchFlowHandler.VERSION
 
     async def test_async_migrate_entry_failure(
         self,
@@ -810,7 +810,7 @@ class Test_Public_Methods:
 
         assert config_entry.state is ConfigEntryState.NOT_LOADED
 
-        hass.config_entries.async_update_entry(config_entry, version=ElasticFlowHandler.VERSION - 1)
+        hass.config_entries.async_update_entry(config_entry, version=OpenSearchFlowHandler.VERSION - 1)
 
         # Mock migrate_data_and_options_to_version and make sure it wasn't called during setup
         with (
@@ -819,7 +819,7 @@ class Test_Public_Methods:
                 return_value=(
                     config_entry.data,
                     config_entry.options,
-                    ElasticFlowHandler.VERSION,
+                    OpenSearchFlowHandler.VERSION,
                 ),
             ) as mock_migrate_config,
             mock.patch.object(
@@ -838,11 +838,11 @@ class Test_Public_Methods:
 
             assert updated_config_entry.state is ConfigEntryState.LOADED
 
-            assert updated_config_entry.version == ElasticFlowHandler.VERSION
+            assert updated_config_entry.version == OpenSearchFlowHandler.VERSION
 
 
 class Test_Private_Methods:
-    """Test the private methods of the Elasticsearch integration initialization."""
+    """Test the private methods of the OpenSearch integration initialization."""
 
 
 class Test_Common_e2e:
@@ -860,7 +860,7 @@ class Test_Common_e2e:
         def _block_async_init(self):
             """Block async init."""
             with mock.patch(
-                f"{MODULE}.es_integration.ElasticIntegration.async_init",
+                f"{MODULE}.os_integration.OpenSearchIntegration.async_init",
                 return_value=True,
             ):
                 yield
@@ -898,7 +898,7 @@ class Test_Common_e2e:
         # We want to test config entry to pipeline settings without initializing the integration
         async def test_config_entry_to_pipeline_settings(self, hass, options, config_entry, snapshot):
             """Test the full integration setup and execution."""
-            integration = ElasticIntegration(hass, config_entry)
+            integration = OpenSearchIntegration(hass, config_entry)
 
             assert snapshot == {
                 "gateway": integration._gateway.settings.to_dict(),

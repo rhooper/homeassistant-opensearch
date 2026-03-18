@@ -1,31 +1,35 @@
-# Copilot Instructions for homeassistant-elasticsearch
+# Copilot Instructions for homeassistant-opensearch
 
-This is a Home Assistant custom component that publishes Home Assistant events to Elasticsearch clusters. This document provides guidance for AI coding assistants working with this codebase.
+This is a Home Assistant custom component that publishes Home Assistant events to OpenSearch clusters. This document provides guidance for AI coding assistants working with this codebase.
 
 ## Project Overview
 
-- **Purpose**: Publish Home Assistant events to Elasticsearch using the Bulk API
+- **Purpose**: Publish Home Assistant events to OpenSearch using the Bulk API
 - **Language**: Python (see `pyproject.toml` for version requirements)
-- **Key Dependencies**: 
+- **Key Dependencies**:
   - Home Assistant (see `pyproject.toml` for version)
-  - Elasticsearch client (see `pyproject.toml` and `custom_components/elasticsearch/manifest.json` for version)
+  - OpenSearch client (see `pyproject.toml` and `custom_components/opensearch/manifest.json` for version)
 - **Architecture**: Home Assistant custom component with config flow support
 - **Quality**: Platinum quality scale (per `manifest.json`)
 
 ## Repository Structure
 
 ```
-custom_components/elasticsearch/  - Main integration code
-  __init__.py                     - Component initialization
-  config_flow.py                  - Configuration flow UI
-  es_gateway.py                   - Elasticsearch API gateway
-  es_publish_pipeline.py          - Event publishing pipeline
-  datastreams/                    - Datastream management
-tests/                            - Test suite
-docs/                             - Documentation (MkDocs)
-scripts/                          - Development scripts
-  lint                            - Run linting/formatting
-  test                            - Run test suite
+custom_components/opensearch/  - Main integration code
+  __init__.py                  - Component initialization
+  config_flow.py               - Configuration flow UI
+  os_gateway.py                - OpenSearch API gateway
+  os_publish_pipeline.py       - Event publishing pipeline
+  os_integration.py            - Integration orchestration
+  os_datastream_manager.py     - Datastream management
+  datastreams/                 - Datastream definitions
+tests/                         - Test suite
+docs/                          - Documentation (MkDocs)
+scripts/                       - Development scripts
+  lint                         - Run linting/formatting
+  test                         - Run test suite
+  run_opensearch               - Start OpenSearch via Docker on fuzzybee.local
+  clean_opensearch             - Clean up OpenSearch containers
 ```
 
 ## Development Workflow
@@ -80,9 +84,9 @@ Linting uses:
 
 ### Naming Conventions
 
-- **Classes**: PascalCase (e.g., `ElasticIntegration`, `ESGateway`)
+- **Classes**: PascalCase (e.g., `OpenSearchIntegration`, `OpenSearchGateway`)
 - **Functions/Methods**: snake_case (e.g., `async_setup_entry`, `publish_events`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `ELASTIC_DOMAIN`, `CONF_URL`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `OPENSEARCH_DOMAIN`, `CONF_URL`)
 - **Private members**: Prefix with underscore (e.g., `_logger`, `_client`)
 
 ### Async Patterns
@@ -100,7 +104,7 @@ Custom exceptions are defined in `errors.py`:
 - `CannotConnect` - Connection failures
 - `AuthenticationRequired` - Auth issues
 - `UnsupportedVersion` - Version incompatibilities
-- `ESIntegrationException` - Base integration exception
+- `OSIntegrationException` - Base integration exception
 
 Map these to Home Assistant exceptions:
 - `ConfigEntryNotReady` - Temporary failures (retryable)
@@ -111,7 +115,7 @@ Map these to Home Assistant exceptions:
 Use the custom logging module (`logger.py`):
 
 ```python
-from custom_components.elasticsearch.logger import LOGGER, have_child
+from custom_components.opensearch.logger import LOGGER, have_child
 
 # Get a child logger for specific context
 _logger = have_child(name="component_name")
@@ -134,27 +138,26 @@ The integration uses Home Assistant's config flow for setup:
 
 ### Event Publishing Pipeline
 
-The core publishing logic is in `es_publish_pipeline.py`:
+The core publishing logic is in `os_publish_pipeline.py`:
 1. Events are collected from Home Assistant
 2. Buffered for efficient batch processing
-3. Published to Elasticsearch using the Bulk API
+3. Published to OpenSearch using the Bulk API
 4. Handles retries and error scenarios
 
 ### Datastream Management
 
-The integration supports multiple Elasticsearch features:
-- Time Series Data Streams (TSDS)
-- Datastream Lifecycle Management (DLM)
-- Index Lifecycle Management (ILM)
+The integration uses OpenSearch datastreams:
+- Time Series Data Streams for metrics
+- Index template management
+- Automatic datastream rollover
 
-Detection and setup is automatic based on cluster capabilities.
+### Gateway
 
-### Gateway Abstraction
-
-`es_gateway.py` and `es_gateway_8.py` provide abstraction over Elasticsearch client:
-- Handles authentication (basic, API key)
+`os_gateway.py` provides the OpenSearch client abstraction:
+- Handles authentication (basic auth)
 - Manages connections and health checks
-- Version-specific implementations
+- Error conversion from opensearch-py exceptions to integration exceptions
+- Minimum version enforcement (OpenSearch >= 2.0)
 
 ## Testing Guidelines
 
@@ -163,22 +166,22 @@ Detection and setup is automatic based on cluster capabilities.
 - Tests mirror the source structure (`test_*.py` for each module)
 - Use pytest fixtures extensively (see `conftest.py`)
 - Snapshot tests for complex data structures (via syrupy)
-- Mock Home Assistant core and Elasticsearch clients
+- Mock Home Assistant core and OpenSearch clients
 
 ### Writing Tests
 
 ```python
-async def test_feature(hass, mock_es_client):
+async def test_feature(hass, mock_os_client):
     """Test feature description."""
     # Setup
-    config_entry = MockConfigEntry(domain=ELASTIC_DOMAIN, data={...})
-    
+    config_entry = MockConfigEntry(domain=OPENSEARCH_DOMAIN, data={...})
+
     # Execute
     result = await async_setup_entry(hass, config_entry)
-    
+
     # Assert
     assert result is True
-    mock_es_client.assert_called_once()
+    mock_os_client.assert_called_once()
 ```
 
 ### Snapshot Updates
@@ -192,7 +195,7 @@ When test output changes intentionally:
 
 ### Adding a New Feature
 
-1. Update the relevant module in `custom_components/elasticsearch/`
+1. Update the relevant module in `custom_components/opensearch/`
 2. Add/update type hints
 3. Write tests in `tests/test_*.py`
 4. Update documentation in `docs/` if user-facing
@@ -204,6 +207,15 @@ When test output changes intentionally:
 - Enable debug logging in Home Assistant configuration
 - Check logs for decorator-wrapped function entry/exit
 - Use the devcontainer with breakpoints in VS Code
+
+### Running OpenSearch for Development
+
+Docker containers run on `fuzzybee.local` via SSH:
+```bash
+./scripts/run_opensearch          # Default: OpenSearch 3.5.0
+./scripts/run_opensearch 2.17.0   # Specific version
+./scripts/clean_opensearch        # Clean up containers
+```
 
 ### Updating Dependencies
 
@@ -232,18 +244,18 @@ Update `pyproject.toml` and regenerate `poetry.lock`.
 ## Home Assistant Integration Guidelines
 
 Follow Home Assistant's integration quality checklist:
-- Config flow required (✓)
-- Async-first implementation (✓)
-- Proper error handling (✓)
-- Type hints throughout (✓)
-- Test coverage >80% (✓)
-- Documentation (✓)
+- Config flow required
+- Async-first implementation
+- Proper error handling
+- Type hints throughout
+- Test coverage >80%
+- Documentation
 
 ## Additional Resources
 
 - [Home Assistant Developer Docs](https://developers.home-assistant.io/)
-- [Elasticsearch Python Client Docs](https://elasticsearch-py.readthedocs.io/)
-- [Project Documentation](https://legrego.github.io/homeassistant-elasticsearch/)
+- [OpenSearch Python Client Docs](https://opensearch.org/docs/latest/clients/python-low-level/)
+- [Project Documentation](https://rhooper.github.io/homeassistant-opensearch/)
 - [Contributing Guide](../CONTRIBUTING.md)
 
 ## Tips for AI Assistants
@@ -264,5 +276,6 @@ Follow Home Assistant's integration quality checklist:
 - Python version requirements defined in `pyproject.toml`
 - Must be compatible with Home Assistant's async event loop
 - Must not block the event loop (no sync I/O in main thread)
-- Elasticsearch API compatibility per `manifest.json` requirements
+- OpenSearch API compatibility per `manifest.json` requirements
+- Minimum supported OpenSearch version: 2.0
 - Quality scale is "platinum" - maintain high standards

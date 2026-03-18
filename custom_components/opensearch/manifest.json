@@ -1,0 +1,23 @@
+{
+  "domain": "opensearch",
+  "name": "OpenSearch",
+  "after_dependencies": [
+    "hassio"
+  ],
+  "codeowners": [
+    "@rhooper"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/rhooper/homeassistant-opensearch",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/rhooper/homeassistant-opensearch/issues",
+  "loggers": [
+    "custom_components.opensearch"
+  ],
+  "quality_scale": "platinum",
+  "requirements": [
+    "opensearch-py[async]~=2.8.0"
+  ],
+  "version": "2.0.0"
+}

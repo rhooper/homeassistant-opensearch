@@ -1,0 +1,321 @@
+"""OpenSearch API Call Mocker."""
+
+from __future__ import annotations
+
+from http import HTTPStatus
+from ssl import SSLCertVerificationError
+from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
+
+from aiohttp import client_exceptions
+from custom_components.opensearch.const import DATASTREAM_METRICS_INDEX_TEMPLATE_NAME
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,  # noqa: F401  # noqa: F401
+)
+from pytest_homeassistant_custom_component.plugins import (  # noqa: F401  # noqa: F401
+    aioclient_mock,
+    skip_stop_scripts,
+    snapshot,
+    verify_cleanup,
+)
+from pytest_homeassistant_custom_component.test_util.aiohttp import (
+    AiohttpClientMocker,
+    AiohttpClientMockResponse,
+)
+
+from tests import const as testconst
+
+if TYPE_CHECKING:
+    from typing import Any
+
+
+def self_signed_tls_error():
+    """Return a self-signed certificate error."""
+    connection_key = MagicMock()
+    connection_key.host = "mock_os_integration"
+    connection_key.port = 9200
+    connection_key.is_ssl = True
+
+    certificate_error = SSLCertVerificationError()
+    certificate_error.verify_code = 19
+    certificate_error.verify_message = "'self-signed certificate in certificate chain'"
+    certificate_error.library = "SSL"
+    certificate_error.reason = "CERTIFICATE_VERIFY_FAILED"
+    certificate_error.strerror = "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1000)"
+    certificate_error.errno = 1
+
+    return client_exceptions.ClientConnectorCertificateError(
+        connection_key=connection_key, certificate_error=certificate_error
+    )
+
+
+class os_mocker:
+    """Mock builder for OpenSearch integration tests."""
+
+    mocker: AiohttpClientMocker
+    base_url: str = testconst.CONFIG_ENTRY_DATA_URL
+
+    def __init__(self, mocker):
+        """Initialize the mock builder."""
+        self.mocker = mocker
+
+    def reset(self):
+        """Reset the mock builder."""
+        self.mocker.clear_requests()
+
+        return self
+
+    def get_calls(self, include_headers=False):
+        """Return the calls."""
+        # each mock_call is a tuple of method, url, body, and headers
+
+        if not include_headers:
+            return [(method, url, body) for method, url, body, headers in self.mocker.mock_calls]
+
+        return self.mocker.mock_calls
+
+    def clear(self):
+        """Clear the requests."""
+        self.mocker.mock_calls.clear()
+
+        return self
+
+    def with_server_error(self, status=None, exc=None):
+        """Mock OpenSearch being unreachable."""
+        if status is None and exc is None:
+            self.mocker.get(f"{self.base_url}", status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+        if exc is None:
+            self.mocker.get(f"{self.base_url}", status=status)
+        else:
+            self.mocker.get(f"{self.base_url}", exc=exc)
+
+        return self
+
+    def without_authentication(self):
+        """Mock the user not being authenticated."""
+        self.mocker.get(
+            f"{self.base_url}",
+            status=401,
+            json=testconst.CLUSTER_INFO_MISSING_CREDENTIALS_RESPONSE_BODY,
+        )
+        return self
+
+    def with_server_timeout(self):
+        """Mock OpenSearch being unreachable."""
+        self.mocker.get(f"{self.base_url}", exc=client_exceptions.ServerTimeoutError())
+        return self
+
+    def _add_fail_after(
+        self,
+        success: AiohttpClientMockResponse,
+        failure: AiohttpClientMockResponse,
+        fail_after,
+    ):
+        if fail_after is None:
+            self.mocker.request(
+                url=success.url,
+                method=success.method,
+                status=success.status,
+                content=success.response,
+                headers=success.headers,
+                exc=success.exc,
+            )
+            return self
+
+        call_count = 0
+
+        async def side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count >= fail_after:
+                return failure
+
+            return success
+
+        self.mocker.request(success.method, f"{success.url}", side_effect=side_effect)
+
+        return self
+
+    def _as_opensearch_stateful(
+        self,
+        version_response: dict[str, Any],
+        with_security: bool = True,
+        fail_after=None,
+    ) -> os_mocker:
+        """Mock OpenSearch version."""
+
+        self.base_url = (
+            testconst.CONFIG_ENTRY_DATA_URL if with_security else testconst.CONFIG_ENTRY_DATA_URL_INSECURE
+        )
+
+        self._add_fail_after(
+            success=AiohttpClientMockResponse(
+                method="GET",
+                url=self.base_url,
+                json=version_response,
+            ),
+            failure=AiohttpClientMockResponse(
+                method="GET",
+                url=self.base_url,
+                status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            ),
+            fail_after=fail_after,
+        )
+
+        return self
+
+    def as_opensearch_2_17(self, with_security: bool = True, fail_after=None) -> os_mocker:
+        """Mock OpenSearch 2.17."""
+        return self._as_opensearch_stateful(
+            testconst.CLUSTER_INFO_2DOT17_RESPONSE_BODY,
+            with_security,
+            fail_after=fail_after,
+        )
+
+    def with_incorrect_permissions(self):
+        """Mock the user being properly authenticated."""
+        self.mocker.post(
+            f"{self.base_url}/_security/user/_has_privileges",
+            status=200,
+            json={
+                "has_all_requested": False,
+            },
+        )
+
+        return self
+
+    def with_correct_permissions(self):
+        """Mock the user being properly authenticated."""
+
+        self.mocker.post(
+            f"{self.base_url}/_security/user/_has_privileges",
+            status=200,
+            json={
+                "has_all_requested": True,
+            },
+        )
+
+        return self
+
+    def with_selfsigned_certificate(self):
+        """Mock a self-signed certificate error."""
+
+        self.mocker.get(f"{self.base_url}", exc=self_signed_tls_error())
+
+        return self
+
+    def with_index_template(self, version=2):
+        """Mock the user being properly authenticated."""
+
+        # Mock index template setup
+        self.mocker.get(
+            f"{self.base_url}/_index_template/{DATASTREAM_METRICS_INDEX_TEMPLATE_NAME}",
+            status=200,
+            json={
+                "index_templates": [
+                    {
+                        "name": "datastream_metrics",
+                        "index_template": {"version": version},
+                    }
+                ]
+            },
+        )
+
+        return self
+
+    def without_index_template(self):
+        """Mock the user being properly authenticated."""
+
+        # Mock index template setup
+        self.mocker.get(
+            f"{self.base_url}/_index_template/{DATASTREAM_METRICS_INDEX_TEMPLATE_NAME}",
+            status=200,
+            json={},
+        )
+
+        self.mocker.put(
+            f"{self.base_url}/_index_template/{DATASTREAM_METRICS_INDEX_TEMPLATE_NAME}",
+            status=200,
+            json={},
+        )
+        return self
+
+    def with_datastreams(self):
+        """Mock the user being properly authenticated."""
+
+        self.mocker.get(
+            f"{self.base_url}/_data_stream/metrics-homeassistant.*",
+            status=200,
+            json={
+                "data_streams": [
+                    {
+                        "name": "metrics-homeassistant.sensor-default",
+                    },
+                    {
+                        "name": "metrics-homeassistant.counter-default",
+                    },
+                ]
+            },
+        )
+
+        self.mocker.post(
+            f"{self.base_url}/metrics-homeassistant.counter-default/_rollover",
+            status=200,
+            json={
+                "acknowledged": True,
+                "shards_acknowledged": True,
+                "old_index": ".ds-metrics-homeassistant.counter-default-2024.12.19-000001",
+                "new_index": ".ds-metrics-homeassistant.counter-default-2025.01.10-000002",
+                "rolled_over": True,
+                "dry_run": False,
+                "lazy": False,
+                "conditions": {},
+            },
+        )
+        self.mocker.post(
+            f"{self.base_url}/metrics-homeassistant.sensor-default/_rollover",
+            status=200,
+            json={
+                "acknowledged": True,
+                "shards_acknowledged": True,
+                "old_index": ".ds-metrics-homeassistant.sensor-default-2024.12.19-000001",
+                "new_index": ".ds-metrics-homeassistant.sensor-default-2025.01.10-000002",
+                "rolled_over": True,
+                "dry_run": False,
+                "lazy": False,
+                "conditions": {},
+            },
+        )
+
+        return self
+
+    def respond_to_bulk_with_item_level_error(self):
+        """Mock a bulk response with an item-level error."""
+
+        self.mocker.post(
+            f"{self.base_url}/_bulk",
+            status=200,
+            json=testconst.BULK_ERROR_RESPONSE_BODY,
+        )
+
+        return self
+
+    def respond_to_bulk(self, status=200, fail_after=None):
+        """Mock the user being properly authenticated."""
+
+        self._add_fail_after(
+            success=AiohttpClientMockResponse(
+                method="POST",
+                url=f"{self.base_url}/_bulk",
+                json=testconst.BULK_SUCCESS_RESPONSE_BODY,
+            ),
+            failure=AiohttpClientMockResponse(
+                method="POST",
+                url=f"{self.base_url}/_bulk",
+                status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            ),
+            fail_after=fail_after,
+        )
+
+        return self

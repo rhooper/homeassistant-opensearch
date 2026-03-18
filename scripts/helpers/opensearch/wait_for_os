@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Wait for OpenSearch to be ready on fuzzybee.local.
+
+REMOTE="fuzzybee.local"
+URL="http://$REMOTE:9200"
+MAX_WAIT=120
+
+elapsed=0
+while true; do
+  status=$(curl -s -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null)
+  if [ "$status" = "200" ]; then
+    echo " ready!"
+    exit 0
+  fi
+
+  if [ "$elapsed" -ge "$MAX_WAIT" ]; then
+    echo " timed out after ${MAX_WAIT}s"
+    exit 1
+  fi
+
+  echo -n "."
+  sleep 2
+  elapsed=$((elapsed + 2))
+done

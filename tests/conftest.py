@@ -1,5 +1,5 @@
 # pylint: disable=redefined-outer-name
-"""Global fixtures for elastic integration."""
+"""Global fixtures for OpenSearch integration."""
 
 # Fixtures allow you to replace functions with a Mock object. You can perform
 # many options via the Mock to reflect a particular behavior from the original
@@ -29,10 +29,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import attr
 import pytest
 from aiohttp import ClientSession, TCPConnector
-from custom_components.elasticsearch.config_flow import ElasticFlowHandler
+from custom_components.opensearch.config_flow import OpenSearchFlowHandler
 from freezegun.api import FrozenDateTimeFactory
-
-# import custom_components.elasticsearch  # noqa: F401
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.json import json_dumps
@@ -50,7 +48,7 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
 )
 
 from tests import const as testconst
-from tests.test_util.es_mocker import es_mocker
+from tests.test_util.os_mocker import os_mocker
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Generator
@@ -61,7 +59,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_registry import EntityRegistry
     from homeassistant.helpers.floor_registry import FloorEntry, FloorRegistry
 
-MODULE = "custom_components.elasticsearch"
+MODULE = "custom_components.opensearch"
 logging.getLogger("homeassistant").setLevel(logging.WARNING)
 logging.getLogger("homeassistant.loader").setLevel(logging.ERROR)
 logging.getLogger("pytest_homeassistant_custom_component").setLevel(logging.WARNING)
@@ -87,8 +85,8 @@ async def integration_setup(
 
 
 @pytest.fixture
-def es_mock_builder() -> Generator[es_mocker, Any, None]:
-    """Fixture to return a builder for mocking Elasticsearch calls."""
+def os_mock_builder() -> Generator[os_mocker, Any, None]:
+    """Fixture to return a builder for mocking OpenSearch calls."""
 
     mocker = AiohttpClientMocker()
 
@@ -107,15 +105,15 @@ def es_mock_builder() -> Generator[es_mocker, Any, None]:
 
     with (
         mock.patch(
-            "elastic_transport._node._http_aiohttp.aiohttp.ClientSession",
+            "opensearchpy._async.http_aiohttp.aiohttp.ClientSession",
             side_effect=create_session,
         ),
         mock.patch(
-            "elastic_transport._node._http_aiohttp.aiohttp.TCPConnector",
+            "opensearchpy._async.http_aiohttp.aiohttp.TCPConnector",
             side_effect=create_tcpconnector,
         ),
     ):
-        yield es_mocker(mocker)
+        yield os_mocker(mocker)
 
 
 @pytest.fixture
@@ -168,7 +166,7 @@ async def data() -> dict:
 @pytest.fixture
 async def version() -> int:
     """Return a mock options dict."""
-    return ElasticFlowHandler.VERSION
+    return OpenSearchFlowHandler.VERSION
 
 
 @pytest.fixture
@@ -187,7 +185,7 @@ async def add_to_hass() -> bool:
 def mock_loop_handler_fixture():
     """Return a mock loop handler that will return."""
     with (
-        patch("custom_components.elasticsearch.es_publish_pipeline.LoopHandler") as loop_handler,
+        patch("custom_components.opensearch.os_publish_pipeline.LoopHandler") as loop_handler,
     ):
         loop_handler.start = AsyncMock()
 
@@ -197,14 +195,14 @@ def mock_loop_handler_fixture():
 @pytest.fixture(autouse=True, name="fix_system_info")
 def fix_system_info_fixture():
     """Return a mock system info."""
-    with mock.patch("custom_components.elasticsearch.es_publish_pipeline.SystemInfo") as system_info:
+    with mock.patch("custom_components.opensearch.os_publish_pipeline.SystemInfo") as system_info:
         system_info_instance = system_info.return_value
         system_info_instance.async_get_system_info = mock.AsyncMock(
             return_value=mock.Mock(
                 version="1.0.0",
                 arch="x86",
                 os_name="Linux",
-                hostname="my_es_host",
+                hostname="my_os_host",
             ),
         )
 
@@ -230,8 +228,8 @@ async def config_entry(
     """Create a mock config entry and add it to hass."""
 
     entry = MockConfigEntry(
-        title="ES Integration",
-        domain="elasticsearch",
+        title="OS Integration",
+        domain="opensearch",
         data=data,
         options=options,
         version=version,

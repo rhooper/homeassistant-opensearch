@@ -1,9 +1,8 @@
-"""Tests for the Elasticsearch integration diagnostics."""
+"""Tests for the OpenSearch integration diagnostics."""
 
 import pytest
-from custom_components.elasticsearch.diagnostics import async_get_config_entry_diagnostics
+from custom_components.opensearch.diagnostics import async_get_config_entry_diagnostics
 from homeassistant.const import (
-    CONF_API_KEY,
     CONF_PASSWORD,
     CONF_URL,
     CONF_USERNAME,
@@ -17,7 +16,6 @@ from homeassistant.const import (
             CONF_URL: "https://example.com",
             CONF_USERNAME: "test_user",
             CONF_PASSWORD: "test_password",
-            CONF_API_KEY: "test_api_key",
         },
         {
             CONF_URL: "https://example.com",

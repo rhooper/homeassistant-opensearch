@@ -1,0 +1,77 @@
+{
+    "config": {
+        "abort": {
+            "reauth_successful": "Re-authentication was successful"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect to host on port. Is it reachable?",
+            "invalid_basic_auth": "Invalid username or password.",
+            "insufficient_privileges": "Insufficient privileges for specified user.",
+            "missing_credentials": "This cluster requires authentication. Please provide a username and password.",
+            "untrusted_certificate": "OpenSearch's server certificate could not be verified. Either disable TLS verification, or specify a custom CA path below.",
+            "unsupported_version": "Unsupported version of OpenSearch detected. The minimum supported version is 2.0.0."
+        },
+        "step": {
+            "user": {
+                "title": "OpenSearch Cluster Information",
+                "description": "Please provide the URL to access your OpenSearch cluster in the format http(s)://my_opensearch_server:port (https://my_opensearch:9200).",
+                "data": {
+                    "url": "URL to access the OpenSearch Cluster"
+                }
+            },
+            "certificate_issues": {
+                "title": "Untrusted Certificate with SSL/TLS",
+                "description": "OpenSearch's server certificate could not be verified. Either disable TLS verification, or specify a custom CA path below.",
+                "data": {
+                    "verify_ssl": "Verify TLS certificate (recommended)",
+                    "ssl_verify_hostname": "Verify hostname matches server certificate",
+                    "ssl_ca_path": "Fully qualified path to custom certificate authority"
+                }
+            },
+            "basic_auth": {
+                "title": "Authenticate via username/password",
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                }
+            },
+            "reauth_confirm": {
+                "title": "Reauthenticate",
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "options": {
+                "title": "OpenSearch Integration Settings",
+                "description": "Configure the polling and publishing settings for the OpenSearch integration.",
+                "data": {
+                    "publish_frequency": "Send events to OpenSearch at this interval",
+                    "polling_frequency": "Gather all entity states at this interval",
+                    "change_detection_type": "Choose what types of entity changes to listen for and publish",
+                    "tags": "Tags to apply to all published events",
+                    "include_targets": "Toggle to only publish the set of targets below",
+                    "exclude_targets": "Toggle to exclude publishing the set of targets below",
+                    "targets_to_include": "Select the targets to include",
+                    "targets_to_exclude": "Select the targets to exclude"
+                },
+                "data_description": {
+                    "publish_frequency": "Set to zero to disable publishing.",
+                    "polling_frequency": "Set to zero to only publish entity changes."
+                }
+            }
+        }
+    },
+    "selector": {
+        "change_detection_type": {
+            "options": {
+                "state": "Track entities with state changes",
+                "attribute": "Track entities with attribute changes"
+            }
+        }
+    }
+}

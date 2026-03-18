@@ -1,72 +1,70 @@
-# Using Kibana
+# Using OpenSearch Dashboards
 
-The integration will put data into Elasticsearch under the `metrics-homeassistant.*` [data stream](https://www.elastic.co/guide/en/elasticsearch/reference/current/data-streams.html). To explore your data, create visualizations, or dashboards in Kibana you first need to create a [Data View](https://www.elastic.co/guide/en/kibana/current/data-views.html).
+The integration will put data into OpenSearch under the `metrics-homeassistant.*` [data stream](https://opensearch.org/docs/latest/dashboards/im-dashboards/datastream/). To explore your data, create visualizations, or dashboards in OpenSearch Dashboards you first need to create an [Index Pattern](https://opensearch.org/docs/latest/dashboards/management/index-patterns/).
 
-## Create a data view
+## Create an index pattern
 
-=== "Kibana UI"
-    Create a Data View using Kibana's UI:
+=== "OpenSearch Dashboards UI"
+    Create an Index Pattern using OpenSearch Dashboards' UI:
 
-    1. Open Kibana
-    2. Using the instructions in the [Kibana documentation](https://www.elastic.co/guide/en/kibana/current/data-views.html#create-data-view), navigate to the `Data views` page, and create a data view with the following values:
-        - **Name**: `Home Assistant Metrics`
-        - **Index pattern**: `metrics-homeassistant.*`
-        - **Timestamp field**: `@timestamp`
+    1. Open OpenSearch Dashboards
+    2. Using the instructions in the [OpenSearch Dashboards documentation](https://opensearch.org/docs/latest/dashboards/management/index-patterns/), navigate to the `Index Patterns` page, and create an index pattern with the following values:
+        - **Index pattern name**: `metrics-homeassistant.*`
+        - **Time field**: `@timestamp`
 
 === "curl"
-    Create a Data View using `curl` and Kibana's [Data views API](https://www.elastic.co/guide/en/kibana/current/data-views-api.html):
+    Create an Index Pattern using `curl` and the OpenSearch Dashboards [Saved Objects API](https://opensearch.org/docs/latest/dashboards/management/saved-objects/):
 
     ```bash
-    KIBANA_URL=http://localhost:5601 # (1)
-    KIBANA_USER=elastic # (2)
-    KIBANA_PASSWORD=changeme # (3)
-    curl -X POST "$KIBANA_URL/api/data_views/data_view" \
-        -u "$KIBANA_USER":"KIBANA_PASSWORD" \
+    DASHBOARDS_URL=http://localhost:5601 # (1)
+    DASHBOARDS_USER=admin # (2)
+    DASHBOARDS_PASSWORD=admin # (3)
+    curl -X POST "$DASHBOARDS_URL/api/saved_objects/index-pattern" \
+        -u "$DASHBOARDS_USER":"DASHBOARDS_PASSWORD" \
         -H "Content-Type: application/json" \
-        -H "kbn-xsrf: true" \
+        -H "osd-xsrf: true" \
         -d'
         {
-            "data_view": {
+            "attributes": {
                 "title": "metrics-homeassistant.*",
-                "name": "Home Assistant Metrics",
                 "timeFieldName": "@timestamp"
             }
         }
         '
     ```
 
-    1. Replace `http://localhost:5601` with the URL of your Kibana instance
-    2. Replace `elastic` with your Kibana username
-    3. Replace `changeme` with your Kibana password
+    1. Replace `http://localhost:5601` with the URL of your OpenSearch Dashboards instance
+    2. Replace `admin` with your OpenSearch Dashboards username
+    3. Replace `admin` with your OpenSearch Dashboards password
 
 === "Dev Tools"
-    Create a Data View using Kibana's [Dev Tools console](https://www.elastic.co/guide/en/kibana/current/console-kibana.html):
+    Create an Index Pattern using OpenSearch Dashboards' [Dev Tools console](https://opensearch.org/docs/latest/dashboards/dev-tools/index-dev/):
 
     ```
-    POST kbn:/api/data_views/data_view
+    POST .kibana/_doc/index-pattern:metrics-homeassistant
     {
-        "data_view": {
+        "type": "index-pattern",
+        "index-pattern": {
             "title": "metrics-homeassistant.*",
-            "name": "Home Assistant Metrics",
             "timeFieldName": "@timestamp"
         }
     }
     ```
 
-## Exploring Home Assistant data in Kibana
+## Exploring Home Assistant data in OpenSearch Dashboards
 
-Once you have created a Data View, you can start exploring your Home Assistant data in Kibana using `Discover`:
+Once you have created an Index Pattern, you can start exploring your Home Assistant data in OpenSearch Dashboards using `Discover`:
 
-1. In Kibana select `Discover`
-2. Select the `Home Assistant Metrics` Data View at the top left
-3. You can now see all the Home Assistant data that has been published to Elasticsearch
+1. In OpenSearch Dashboards select `Discover`
+2. Select the `metrics-homeassistant.*` Index Pattern at the top left
+3. You can now see all the Home Assistant data that has been published to OpenSearch
 4. You can filter the data using the filter bar at the top
 5. You can pull specific fields into the document table at the bottom by clicking on the `+` icon next to a field
 6. You can change the time range of the data you are viewing using the time picker in the top right
 
 ![img](assets/kibana-discover.png)
 
-## Viewing Home Assistant data in Kibana
+## Viewing Home Assistant data in OpenSearch Dashboards
 
 When creating new visualizations you may find the following fields useful:
 
@@ -87,10 +85,10 @@ When creating new visualizations you may find the following fields useful:
 
 To build a visualization that shows the temperature of a specific entity over time, you can use the following steps:
 
-1. In Kibana select `Visualizations` and create a new Lens visualization
-2. Select `Home Assistant Metrics`
-3. For the `Horizontal axis` select `@timestamp`
-4. For the `Vertical axis` select `hass.entity.valueas.float`
+1. In OpenSearch Dashboards select `Visualizations` and create a new visualization
+2. Select `metrics-homeassistant.*`
+3. For the `X-axis` select `@timestamp`
+4. For the `Y-axis` select `hass.entity.valueas.float`
 5. In the filter bar at the top, add a filter for `hass.entity.id` and set the value to the entity id of the entity you want to visualize (ex. `sensor.living_room_ecobee_temperature`) or `hass.entity.attributes.friendly_name` and set the value to the friendly name of the entity you want to visualize (ex. `Living Room EcoBee Temperature`)
 
 ![img](assets/kibana-lens-visualization.png)
@@ -111,9 +109,9 @@ Visualize and alert on data from your weather station:
 
 ### Additional examples
 
-Some usage examples inspired by [real users](https://github.com/legrego/homeassistant-elasticsearch/issues/203):
+Some usage examples inspired by [real users of the original Elasticsearch integration](https://github.com/legrego/homeassistant-elasticsearch/issues/203), whose techniques can also inspire OpenSearch users:
 
-- Utilizing a Raspberry Pi in [kiosk mode](https://www.raspberrypi.com/tutorials/how-to-use-a-raspberry-pi-in-kiosk-mode/) with a 15" display, the homeassistant-elasticsearch integration enables the creation of rotating fullscreen [Elasticsearch Canvas](https://www.elastic.co/kibana/canvas). Those canvas displays metrics collected from various Home Assistant integrations, offering visually dynamic and informative dashboards for monitoring smart home data.
-- To address temperature maintenance issues in refrigerators and freezers, temperature sensors in each appliance report data to Home Assistant, which is then published to Elasticsearch. Kibana's [alerting framework](https://www.elastic.co/kibana/alerting) is employed to set up rules that notify the user if temperatures deviate unfavorably for an extended period. The Elastic rule engine and aggregations simplify the monitoring process for this specific use case.
-- Monitoring the humidity and temperature in a snake enclosure/habitat for a user's daughter, the integration facilitates the use of Elastic's Alerting framework. This choice is motivated by the framework's suitability for the monitoring requirements, providing a more intuitive solution compared to Home Assistant automations.
+- Utilizing a Raspberry Pi in [kiosk mode](https://www.raspberrypi.com/tutorials/how-to-use-a-raspberry-pi-in-kiosk-mode/) with a 15" display, the homeassistant-opensearch integration enables the creation of rotating fullscreen OpenSearch Dashboards visualizations. Those dashboards display metrics collected from various Home Assistant integrations, offering visually dynamic and informative dashboards for monitoring smart home data.
+- To address temperature maintenance issues in refrigerators and freezers, temperature sensors in each appliance report data to Home Assistant, which is then published to OpenSearch. OpenSearch Dashboards' [alerting framework](https://opensearch.org/docs/latest/observing-your-data/alerting/index/) is employed to set up rules that notify the user if temperatures deviate unfavorably for an extended period. The OpenSearch rule engine and aggregations simplify the monitoring process for this specific use case.
+- Monitoring the humidity and temperature in a snake enclosure/habitat for a user's daughter, the integration facilitates the use of OpenSearch's Alerting framework. This choice is motivated by the framework's suitability for the monitoring requirements, providing a more intuitive solution compared to Home Assistant automations.
 - The integration allows users to maintain a smaller subset of data, focusing on individual stats of interest, for an extended period. This capability contrasts with the limited retention achievable with Home Assistant and databases like MariaDB/MySQL. This extended data retention facilitates very long-term trend analysis, such as for weather data, enabling users to glean insights over an extended timeframe.

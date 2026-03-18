@@ -5,13 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
-import custom_components.elasticsearch.const as compconst
+import custom_components.opensearch.const as compconst
 import homeassistant.const as haconst
 import pytest
-from custom_components.elasticsearch.config_flow import (
-    ElasticOptionsFlowHandler,
+from custom_components.opensearch.config_flow import (
+    OpenSearchOptionsFlowHandler,
 )
-from custom_components.elasticsearch.errors import (
+from custom_components.opensearch.errors import (
     AuthenticationRequired,
     CannotConnect,
     InsufficientPrivileges,
@@ -30,9 +30,9 @@ if TYPE_CHECKING:  # pragma: no cover
     from homeassistant.core import HomeAssistant
 
 
-base_path = "custom_components.elasticsearch"
+base_path = "custom_components.opensearch"
 config_flow_setup_entry = f"{base_path}.async_setup_entry"
-gateway_async_init = f"{base_path}.es_gateway_8.Elasticsearch8Gateway.async_init_then_stop"
+gateway_async_init = f"{base_path}.os_gateway.OpenSearchGateway.async_init_then_stop"
 
 
 async def add_config_entry_to_hass(hass: HomeAssistant, config_entry):
@@ -96,7 +96,7 @@ class Test_Setup_Flows:
 
         assert result is not None
         assert result.get("type") == "form"
-        assert result.get("step_id") == "authentication_issues"
+        assert result.get("step_id") == "basic_auth"
         assert result.get("errors") is None
 
         return result["flow_id"]
@@ -105,28 +105,30 @@ class Test_Setup_Flows:
         """Test the full config flow."""
         with patch(gateway_async_init, return_value=True):
             result = await hass.config_entries.flow.async_configure(
-                initial_form, user_input={testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL}
+                initial_form,
+                user_input={testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL},
             )
 
         # The entry should be now created
         assert "type" in result and result["type"] == FlowResultType.CREATE_ENTRY
         assert "title" in result and result["title"] == testconst.CONFIG_ENTRY_DATA_URL
         assert "data" in result and result["data"] == {testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL}
-        assert "options" in result and result["options"] == ElasticOptionsFlowHandler.default_options
+        assert "options" in result and result["options"] == OpenSearchOptionsFlowHandler.default_options
 
     @pytest.mark.parametrize(
         ("exception", "step_id"),
         [
             (UntrustedCertificate, "certificate_issues"),
             (CannotConnect, "user"),
-            (AuthenticationRequired, "authentication_issues"),
+            (AuthenticationRequired, "basic_auth"),
         ],
     )
     async def test_url_to_extra_steps(self, hass: HomeAssistant, initial_form, exception, step_id):
         """Test transitions from the url form to other forms."""
         with patch(gateway_async_init, side_effect=exception()):
             result = await hass.config_entries.flow.async_configure(
-                initial_form, user_input={testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL}
+                initial_form,
+                user_input={testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL},
             )
 
         assert "type" in result and result["type"] == FlowResultType.FORM
@@ -150,14 +152,18 @@ class Test_Setup_Flows:
             compconst.CONF_SSL_VERIFY_HOSTNAME: True,
             haconst.CONF_VERIFY_SSL: True,
         }
-        assert "options" in result and result["options"] == ElasticOptionsFlowHandler.default_options
+        assert "options" in result and result["options"] == OpenSearchOptionsFlowHandler.default_options
 
     @pytest.mark.parametrize(
         ("exception", "step_id", "errors"),
         [
-            (UntrustedCertificate, "certificate_issues", {"base": "untrusted_certificate"}),
+            (
+                UntrustedCertificate,
+                "certificate_issues",
+                {"base": "untrusted_certificate"},
+            ),
             (CannotConnect, "user", {"base": "cannot_connect"}),
-            (AuthenticationRequired, "authentication_issues", None),
+            (AuthenticationRequired, "basic_auth", None),
         ],
         ids=[
             "Unresolved certificate issues",
@@ -182,34 +188,15 @@ class Test_Setup_Flows:
         assert "step_id" in result and result["step_id"] == step_id
         assert "errors" in result and result["errors"] == errors
 
-    @pytest.mark.parametrize(
-        ("authentication_type", "settings"),
-        [
-            (
-                "basic_auth",
-                {haconst.CONF_USERNAME: "username", haconst.CONF_PASSWORD: "password"},
-            ),
-            ("api_key", {haconst.CONF_API_KEY: "api_key"}),
-        ],
-        ids=["Basic Auth", "API Key"],
-    )
-    async def test_url_to_authentication_issues_to_done(
-        self, hass: HomeAssistant, authentication_form, authentication_type, settings
-    ):
+    async def test_url_to_authentication_issues_to_done(self, hass: HomeAssistant, authentication_form):
         """Test transitions from the authentication form to entry creation."""
 
-        # Pick an authentication method from the form
-        result = await hass.config_entries.flow.async_configure(
-            authentication_form,
-            user_input={
-                compconst.CONF_AUTHENTICATION_TYPE: authentication_type,
-            },
-        )
+        settings = {
+            haconst.CONF_USERNAME: "username",
+            haconst.CONF_PASSWORD: "password",
+        }
 
-        assert "type" in result and result["type"] == FlowResultType.FORM
-        assert "step_id" in result and result["step_id"] == authentication_type
-
-        # Now proceed on the form for the specific auth method
+        # Now proceed on the form for basic auth
         with patch(gateway_async_init, return_value=True):
             result = await hass.config_entries.flow.async_configure(
                 authentication_form,
@@ -222,43 +209,23 @@ class Test_Setup_Flows:
             testconst.CONF_URL: testconst.CONFIG_ENTRY_DATA_URL,
             **settings,
         }
-        assert "options" in result and result["options"] == ElasticOptionsFlowHandler.default_options
+        assert "options" in result and result["options"] == OpenSearchOptionsFlowHandler.default_options
 
     @pytest.mark.parametrize(
-        ("authentication_type", "settings", "exception", "step_id", "errors"),
+        ("settings", "exception", "errors"),
         [
             (
-                "api_key",
-                {haconst.CONF_API_KEY: "api_key"},
+                {haconst.CONF_USERNAME: "username", haconst.CONF_PASSWORD: "password"},
                 InsufficientPrivileges,
-                "api_key",
                 {"base": "insufficient_privileges"},
             ),
             (
-                "api_key",
-                {haconst.CONF_API_KEY: "api_key"},
-                AuthenticationRequired,
-                "api_key",
-                {"base": "invalid_api_key"},
-            ),
-            (
-                "basic_auth",
-                {haconst.CONF_USERNAME: "username", haconst.CONF_PASSWORD: "password"},
-                InsufficientPrivileges,
-                "basic_auth",
-                {"base": "insufficient_privileges"},
-            ),
-            (
-                "basic_auth",
                 {haconst.CONF_USERNAME: "username", haconst.CONF_PASSWORD: "password"},
                 AuthenticationRequired,
-                "basic_auth",
                 {"base": "invalid_basic_auth"},
             ),
         ],
         ids=[
-            "API Key Insufficient Privileges",
-            "API Key Invalid",
             "Basic Auth Insufficient Privileges",
             "Basic Auth Invalid",
         ],
@@ -267,25 +234,11 @@ class Test_Setup_Flows:
         self,
         hass: HomeAssistant,
         authentication_form,
-        authentication_type,
         settings,
         exception,
-        step_id,
         errors,
     ):
         """Test transitions from the authentication form to other forms."""
-
-        # Pick an authentication method from the form
-        result = await hass.config_entries.flow.async_configure(
-            authentication_form,
-            user_input={
-                compconst.CONF_AUTHENTICATION_TYPE: authentication_type,
-            },
-        )
-
-        # Ensure we are now on the form for the specific authentication method
-        assert "type" in result and result["type"] == FlowResultType.FORM
-        assert "step_id" in result and result["step_id"] == authentication_type
 
         # Simulate a failure on the gateway during authentication so that we are presented with a form
         with patch(gateway_async_init, side_effect=exception):
@@ -296,7 +249,7 @@ class Test_Setup_Flows:
 
         # Ensure we are sent back to the authentication form
         assert "type" in result and result["type"] == FlowResultType.FORM
-        assert "step_id" in result and result["step_id"] == step_id
+        assert "step_id" in result and result["step_id"] == "basic_auth"
         assert "errors" in result and result["errors"] == errors
 
 
@@ -319,33 +272,24 @@ class Test_Reauth_Flow:
                 {haconst.CONF_USERNAME: "username", haconst.CONF_PASSWORD: "password"},
             ),
             (
-                AuthenticationRequired,
-                "api_key",
-                {haconst.CONF_API_KEY: "api_key"},
-                {haconst.CONF_API_KEY: "api_key"},
-            ),
-            (
                 InsufficientPrivileges,
                 "basic_auth",
                 {haconst.CONF_USERNAME: "username", haconst.CONF_PASSWORD: "password"},
                 {haconst.CONF_USERNAME: "username", haconst.CONF_PASSWORD: "password"},
             ),
-            (
-                InsufficientPrivileges,
-                "api_key",
-                {haconst.CONF_API_KEY: "api_key"},
-                {haconst.CONF_API_KEY: "api_key"},
-            ),
         ],
         ids=[
             "Reauth Basic Auth due to bad authentication",
-            "Reauth API Key due to bad authentication",
             "Reauth Basic Auth due to insufficient privileges",
-            "Reauth API Key due to insufficient privileges",
         ],
     )
     async def test_reauth_flow(
-        self, hass: HomeAssistant, exception, step_id, existing_auth_settings, user_input
+        self,
+        hass: HomeAssistant,
+        exception,
+        step_id,
+        existing_auth_settings,
+        user_input,
     ):
         """Test the reauth flow completes when the user provides new authentication details."""
 

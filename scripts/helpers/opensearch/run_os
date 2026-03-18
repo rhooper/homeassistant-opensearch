@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Start an OpenSearch container on fuzzybee.local via SSH.
+#
+# Usage: /bin/bash run_os <version>
+
+osversion=$1
+REMOTE="fuzzybee.local"
+
+container_id=$(ssh "$REMOTE" docker run -d \
+  --name os01 \
+  --net opensearch \
+  -p 9200:9200 \
+  -e "discovery.type=single-node" \
+  -e "OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin" \
+  -e "DISABLE_SECURITY_PLUGIN=true" \
+  "opensearchproject/opensearch:$osversion")
+
+echo "$container_id"

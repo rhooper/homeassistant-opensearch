@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Clean up OpenSearch containers on fuzzybee.local
+
+REMOTE="fuzzybee.local"
+
+echo "Performing Environment Clean-up on $REMOTE"
+
+containers=("os01" "osd01")
+
+for container in "${containers[@]}"; do
+  if ! ssh "$REMOTE" docker ps -a 2>/dev/null | grep -q "$container"; then
+    continue
+  fi
+
+  echo "- Stopping and removing container $container"
+  ssh "$REMOTE" docker kill "$container" >/dev/null 2>&1
+  ssh "$REMOTE" docker rm "$container" >/dev/null 2>&1
+done
+
+# If the network exists, remove it
+if ssh "$REMOTE" docker network ls 2>/dev/null | grep -q "opensearch"; then
+  echo "- Removing network opensearch"
+  ssh "$REMOTE" docker network rm opensearch >/dev/null 2>&1
+fi

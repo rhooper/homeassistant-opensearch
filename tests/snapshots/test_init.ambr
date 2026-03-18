@@ -2,7 +2,6 @@
 # name: Test_Common_e2e.Test_Pipeline_Settings.test_config_entry_to_pipeline_settings
   dict({
     'gateway': dict({
-      'api_key': None,
       'ca_certs': None,
       'minimum_privileges': dict({
         'cluster': list([
@@ -23,10 +22,9 @@
           }),
         ]),
       }),
-      'minimum_version': None,
       'password': 'changeme',
       'request_timeout': 30,
-      'url': 'https://mock_es_integration:9200',
+      'url': 'https://mock_os_integration:9200',
       'username': 'hass_writer',
       'verify_certs': False,
       'verify_hostname': False,

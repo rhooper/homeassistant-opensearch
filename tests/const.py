@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from custom_components.elasticsearch.const import (
+from custom_components.opensearch.const import (
     CONF_CHANGE_DETECTION_TYPE,
     CONF_EXCLUDE_TARGETS,
     CONF_INCLUDE_TARGETS,
@@ -125,18 +125,20 @@ ENTITY_STATE_ATTRIBUTE_COMBINATION_IDS = [
     "With comprehensive compliant and non-compliant attributes",
 ]
 
-CONFIG_ENTRY_DATA_URL = "https://mock_es_integration:9200"
-CONFIG_ENTRY_DATA_URL_INSECURE = "http://mock_es_integration:9200"
+CONFIG_ENTRY_DATA_URL = "https://mock_os_integration:9200"
+CONFIG_ENTRY_DATA_URL_INSECURE = "http://mock_os_integration:9200"
 CONFIG_ENTRY_DATA_TIMEOUT = 30
 CONFIG_ENTRY_DATA_VERIFY_SSL = False
 
 CONFIG_ENTRY_DATA_USERNAME = "hass_writer"
 CONFIG_ENTRY_DATA_PASSWORD = "changeme"
 
-CONFIG_ENTRY_DATA_API_KEY = "1234567"
 
-
-CONFIG_ENTRY_BASE_DATA = {CONF_URL: CONFIG_ENTRY_DATA_URL, CONF_TIMEOUT: 30, CONF_VERIFY_SSL: False}
+CONFIG_ENTRY_BASE_DATA = {
+    CONF_URL: CONFIG_ENTRY_DATA_URL,
+    CONF_TIMEOUT: 30,
+    CONF_VERIFY_SSL: False,
+}
 
 CONFIG_ENTRY_DEFAULT_DATA = {
     **CONFIG_ENTRY_BASE_DATA,
@@ -156,7 +158,10 @@ CONFIG_ENTRY_BASE_OPTIONS = {
 }
 
 CONFIG_ENTRY_DEFAULT_OPTIONS = {
-    CONF_CHANGE_DETECTION_TYPE: [StateChangeType.STATE.value, StateChangeType.ATTRIBUTE.value],
+    CONF_CHANGE_DETECTION_TYPE: [
+        StateChangeType.STATE.value,
+        StateChangeType.ATTRIBUTE.value,
+    ],
     CONF_TAGS: [],
     CONF_POLLING_FREQUENCY: 60,
     CONF_PUBLISH_FREQUENCY: 60,
@@ -167,7 +172,10 @@ CONFIG_ENTRY_DEFAULT_OPTIONS = {
 }
 
 CONFIG_ENTRY_FAST_PUBLISH_OPTIONS = {
-    CONF_CHANGE_DETECTION_TYPE: [StateChangeType.STATE.value, StateChangeType.ATTRIBUTE.value],
+    CONF_CHANGE_DETECTION_TYPE: [
+        StateChangeType.STATE.value,
+        StateChangeType.ATTRIBUTE.value,
+    ],
     CONF_TAGS: [],
     CONF_POLLING_FREQUENCY: 2,
     CONF_PUBLISH_FREQUENCY: 2,
@@ -279,7 +287,11 @@ ENTITY_STATE_MATRIX_EXTRA = [
     [
         (ENTITY_STATE_INT, StateChangeType.ATTRIBUTE, ENTITY_ATTRIBUTES_COMPREHENSIVE),
         (ENTITY_STATE_BOOLEAN, StateChangeType.NO_CHANGE, ENTITY_ATTRIBUTES_INVALID),
-        (ENTITY_STATE_DATETIME, StateChangeType.NO_CHANGE, ENTITY_ATTRIBUTES_WITH_INVALID),
+        (
+            ENTITY_STATE_DATETIME,
+            StateChangeType.NO_CHANGE,
+            ENTITY_ATTRIBUTES_WITH_INVALID,
+        ),
     ],
     False,
     [
@@ -303,7 +315,7 @@ MANAGER_STATIC_FIELDS = {
     "agent.version": "1.0.0",
     "host.architecture": "x86",
     "host.os.name": "Linux",
-    "host.hostname": "my_es_host",
+    "host.hostname": "my_os_host",
     "tags": ["tag1", "tag2"],
     "host.location": [MOCK_LOCATION_SERVER_LON, MOCK_LOCATION_SERVER_LAT],
 }
@@ -351,21 +363,6 @@ BULK_SUCCESS_RESPONSE_BODY = {
     ],
 }
 
-XPACK_USAGE_SERVERLESS_RESPONSE_BODY = {
-    "error": {
-        "root_cause": [
-            {
-                "type": "api_not_available_exception",
-                "reason": "Request for uri [/_xpack/usage?pretty=true] with method [GET] exists but is not available when running in serverless mode",
-            }
-        ],
-        "type": "api_not_available_exception",
-        "reason": "Request for uri [/_xpack/usage?pretty=true] with method [GET] exists but is not available when running in serverless mode",
-    },
-    "status": 410,
-}
-
-
 CLUSTER_INFO_MISSING_CREDENTIALS_RESPONSE_BODY = {
     "error": {
         "root_cause": [
@@ -375,8 +372,6 @@ CLUSTER_INFO_MISSING_CREDENTIALS_RESPONSE_BODY = {
                 "header": {
                     "WWW-Authenticate": [
                         'Basic realm="security" charset="UTF-8"',
-                        'Bearer realm="security"',
-                        "ApiKey",
                     ],
                 },
             },
@@ -386,97 +381,26 @@ CLUSTER_INFO_MISSING_CREDENTIALS_RESPONSE_BODY = {
         "header": {
             "WWW-Authenticate": [
                 'Basic realm="security" charset="UTF-8"',
-                'Bearer realm="security"',
-                "ApiKey",
             ],
         },
     },
     "status": 401,
 }
 
-CLUSTER_INFO_8DOT0_RESPONSE_BODY = {
-    "name": "b33ad024a3eb",
-    "cluster_name": "docker-cluster",
-    "cluster_uuid": "0gTsD5juRwmRElXBCEfk6Q",
-    "version": {
-        "number": "8.0.0",
-        "build_flavor": "default",
-        "build_type": "docker",
-        "build_hash": "1b6a7ece17463df5ff54a3e1302d825889aa1161",
-        "build_date": "2022-02-03T16:47:57.507843096Z",
-        "build_snapshot": False,
-        "lucene_version": "9.0.0",
-        "minimum_wire_compatibility_version": "7.17.0",
-        "minimum_index_compatibility_version": "7.0.0",
-    },
-    "tagline": "You Know, for Search",
-}
-
-CLUSTER_INFO_SERVERLESS_RESPONSE_BODY = {
-    "name": "serverless",
-    "cluster_name": "home-assistant-cluster",
-    "cluster_uuid": "xtsjNokTQGClXbRibWjxyg",
-    "version": {
-        "number": "8.11.0",
-        "build_flavor": "serverless",
-        "build_type": "docker",
-        "build_hash": "00000000",
-        "build_date": "2023-10-31",
-        "build_snapshot": False,
-        "lucene_version": "9.7.0",
-        "minimum_wire_compatibility_version": "8.11.0",
-        "minimum_index_compatibility_version": "8.11.0",
-    },
-    "tagline": "You Know, for Search",
-}
-
-CLUSTER_INFO_8DOT11_RESPONSE_BODY = {
+CLUSTER_INFO_2DOT17_RESPONSE_BODY = {
     "name": "640dcce4be79",
     "cluster_name": "docker-cluster",
     "cluster_uuid": "R-PPqCZYQTCMvkpGcyL4mA",
     "version": {
-        "number": "8.11.0",
-        "build_flavor": "default",
+        "distribution": "opensearch",
+        "number": "2.17.0",
         "build_type": "docker",
         "build_hash": "d9ec3fa628c7b0ba3d25692e277ba26814820b20",
         "build_date": "2023-11-04T10:04:57.184859352Z",
         "build_snapshot": False,
         "lucene_version": "9.8.0",
-        "minimum_wire_compatibility_version": "7.17.0",
+        "minimum_wire_compatibility_version": "7.10.0",
         "minimum_index_compatibility_version": "7.0.0",
     },
-    "tagline": "You Know, for Search",
-}
-
-CLUSTER_INFO_8DOT17_RESPONSE_BODY = {
-    "name": "640dcce4be79",
-    "cluster_name": "docker-cluster",
-    "cluster_uuid": "R-PPqCZYQTCMvkpGcyL4mA",
-    "version": {
-        "number": "8.17.0",
-        "build_flavor": "default",
-        "build_type": "docker",
-        "build_hash": "d9ec3fa628c7b0ba3d25692e277ba26814820b20",
-        "build_date": "2023-11-04T10:04:57.184859352Z",
-        "build_snapshot": False,
-        "lucene_version": "9.8.0",
-        "minimum_wire_compatibility_version": "7.17.0",
-        "minimum_index_compatibility_version": "7.0.0",
-    },
-}
-CLUSTER_INFO_8DOT14_RESPONSE_BODY = {
-    "name": "640dcce4be79",
-    "cluster_name": "docker-cluster",
-    "cluster_uuid": "R-PPqCZYQTCMvkpGcyL4mA",
-    "version": {
-        "number": "8.14.0",
-        "build_flavor": "default",
-        "build_type": "docker",
-        "build_hash": "d9ec3fa628c7b0ba3d25692e277ba26814820b20",
-        "build_date": "2023-11-04T10:04:57.184859352Z",
-        "build_snapshot": False,
-        "lucene_version": "9.8.0",
-        "minimum_wire_compatibility_version": "7.17.0",
-        "minimum_index_compatibility_version": "7.0.0",
-    },
+    "tagline": "The OpenSearch Project: https://opensearch.org/",
 }

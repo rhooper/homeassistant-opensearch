@@ -1,4 +1,4 @@
-site_name: Elasticsearch Component for Home Assistant
+site_name: OpenSearch Component for Home Assistant
 nav:
   - 'index.md'
   - 'install.md'

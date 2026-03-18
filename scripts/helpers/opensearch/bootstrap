@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Bootstrap OpenSearch in Docker on fuzzybee.local via SSH.
+#
+# Usage: /bin/bash bootstrap <version>
+# - version: The OpenSearch version to use (e.g. 3.5.0)
+
+dir=$(dirname "$0")
+version=$1
+REMOTE="fuzzybee.local"
+
+set -e
+
+start=$(date +%s)
+
+if [ -z "$version" ]; then
+  echo "Please provide a valid OpenSearch version (e.g. 3.5.0)"
+  read -r version
+fi
+
+# Create a Docker network for OpenSearch
+ssh "$REMOTE" docker network create opensearch >/dev/null
+
+echo "Pulling Docker image for OpenSearch $version"
+ssh "$REMOTE" docker pull "opensearchproject/opensearch:$version"
+
+echo "Starting OpenSearch $version"
+oscontainer=$(/bin/bash "$dir/run_os" "$version")
+
+echo -n "- Waiting for OpenSearch ($oscontainer) to be ready"
+/bin/bash "$dir/wait_for_os"
+
+end=$(date +%s)
+
+echo ""
+echo "---Ready to use!---"
+echo ""
+echo "OpenSearch"
+echo "  URL: https://$REMOTE:9200"
+echo "  User: admin"
+echo "  Password: admin"
+echo ""
+echo "Setup Information"
+echo "  Version: $version"
+echo "  Container: $oscontainer"
+echo "  Host: $REMOTE"
+echo "  Duration: $((end - start)) seconds"
+echo ""
