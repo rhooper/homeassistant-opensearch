@@ -28,19 +28,14 @@
             "command": "/bin/bash ./scripts/coverage"
         },
         {
-            "label": "Run Elasticsearch 7.17.0 (HTTP Port 9200) and Kibana 7.17.0 (HTTP Port 5601)",
+            "label": "Run OpenSearch 3.5.0 on fuzzybee.local (HTTP Port 9200)",
             "type": "shell",
-            "command": "/bin/bash ./scripts/run_ek_7_17_0"
+            "command": "/bin/bash ./scripts/run_opensearch 3.5.0"
         },
         {
-            "label": "Run Elasticsearch 8.0.0 (HTTPS Port 9200) and Kibana 8.0.0 (HTTP Port 5601)",
+            "label": "Clean up OpenSearch containers on fuzzybee.local",
             "type": "shell",
-            "command": "/bin/bash ./scripts/run_ek_8_0_0"
-        },
-        {
-            "label": "Run Elasticsearch 8.14.0 (HTTPS Port 9200) and Kibana 8.14.0 (HTTP Port 5601)",
-            "type": "shell",
-            "command": "/bin/bash ./scripts/run_ek_8_14_0"
+            "command": "/bin/bash ./scripts/clean_opensearch"
         },
     ]
 }

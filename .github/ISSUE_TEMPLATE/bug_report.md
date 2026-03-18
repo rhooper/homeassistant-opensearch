@@ -6,12 +6,12 @@ about: Create a report to help us improve
 
 **Environment**
 Home-Assistant version: x.yy
-Elasticsearch version: x.y.z
+OpenSearch version: x.y.z
 
 Relevant `configuration.yml` settings:
 ```yml
-# Do not include your Elasticsearch URL, credentials, or any other sensitive information
-elastic:
+# Do not include your OpenSearch URL, credentials, or any other sensitive information
+opensearch:
   ...
 ```
 

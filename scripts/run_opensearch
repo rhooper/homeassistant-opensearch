@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Run OpenSearch on fuzzybee.local via SSH
+# Usage: ./scripts/run_opensearch [version]
+# Default version: 3.5.0
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+VERSION="${1:-3.5.0}"
+
+/bin/bash "$DIR/clean_opensearch"
+/bin/bash "$DIR/helpers/opensearch/bootstrap" "$VERSION"

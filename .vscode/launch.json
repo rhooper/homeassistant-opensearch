@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug HA with Elasticsearch Component",
+            "name": "Debug HA with OpenSearch Component",
             "type": "debugpy",
             "request": "launch",
             "module": "homeassistant",
