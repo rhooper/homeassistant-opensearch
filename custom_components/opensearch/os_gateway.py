@@ -263,6 +263,9 @@ class OpenSearchGateway:
     @async_log_enter_exit_debug
     async def put_index_template(self, name, body) -> dict:
         """Create an index template."""
+        import json
+
+        self._logger.debug("put_index_template request name=%s body=%s", name, json.dumps(body, indent=2))
         with self._error_converter(msg="Error creating index template"):
             return await self.client.indices.put_index_template(name=name, body=body)
 
@@ -405,6 +408,9 @@ class OpenSearchGateway:
 
         except opensearchpy.TransportError as err:
             if hasattr(err, "status_code") and isinstance(err.status_code, int) and err.status_code >= 400:
+                BASE_LOGGER.error(
+                    "OpenSearch TransportError %s: %s (info=%s)", err.status_code, err.error, err.info
+                )
                 raise ServerError(append_msg(f"Error in request to OpenSearch: {err.status_code}")) from err
             else:
                 raise CannotConnect(
