@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "homeassistant-elasticsearch"
+name = "homeassistant-opensearch"
 version = "2.0.0"
 description = ""
 authors = ["Larry Gregory <lgregorydev@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{ include = "elasticsearch", from = "custom_components" }]
+packages = [{ include = "opensearch", from = "custom_components" }]
 
 [tool.poetry.dependencies]
 python = ">=3.13.2,<4.0"
-elasticsearch8 = "~=8.14.0"
+opensearch-py = {version = "~=2.8.0", extras = ["async"]}
 
 [tool.poetry.group.dev.dependencies]
 colorlog = "==6.10.1"

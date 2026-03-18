@@ -21,7 +21,6 @@
 # name: test_async_get_config_entry_diagnostics[options0-URL and all auth params]
   dict({
     'data': dict({
-      'api_key': '**REDACTED**',
       'password': '**REDACTED**',
       'url': 'https://example.com',
       'username': '**REDACTED**',

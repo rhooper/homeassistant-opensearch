@@ -1,4 +1,4 @@
-"""Config flow for Elastic."""
+"""Config flow for OpenSearch."""
 
 from typing import Any
 
@@ -6,7 +6,6 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.const import (
-    CONF_API_KEY,
     CONF_PASSWORD,
     CONF_TIMEOUT,
     CONF_URL,
@@ -28,7 +27,7 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from custom_components.elasticsearch.const import (
+from custom_components.opensearch.const import (
     CONF_AUTHENTICATION_TYPE,
     CONF_CHANGE_DETECTION_TYPE,
     CONF_EXCLUDE_TARGETS,
@@ -43,14 +42,14 @@ from custom_components.elasticsearch.const import (
     ONE_MINUTE,
     StateChangeType,
 )
-from custom_components.elasticsearch.const import DOMAIN as ELASTIC_DOMAIN
-from custom_components.elasticsearch.errors import (
+from custom_components.opensearch.const import DOMAIN as OPENSEARCH_DOMAIN
+from custom_components.opensearch.errors import (
     AuthenticationRequired,
     CannotConnect,
     InsufficientPrivileges,
     UntrustedCertificate,
 )
-from custom_components.elasticsearch.es_gateway_8 import Elasticsearch8Gateway
+from custom_components.opensearch.es_gateway_8 import Elasticsearch8Gateway
 
 from .logger import LOGGER as BASE_LOGGER
 from .logger import (
@@ -60,38 +59,36 @@ from .logger import (
     log_enter_exit_info,
 )
 
-CONFIG_TO_REDACT = {CONF_API_KEY, CONF_PASSWORD, CONF_USERNAME}
+CONFIG_TO_REDACT = {CONF_PASSWORD, CONF_USERNAME}
 
 # Data Flow values
 SCHEMA_URL: dict[Any, Any] = {"schema": CONF_URL, "default": "https://localhost:9200"}
 SCHEMA_AUTHENTICATION_TYPE: dict[Any, Any] = {
     "schema": CONF_AUTHENTICATION_TYPE,
-    "default": CONF_API_KEY,
+    "default": "basic_auth",
 }
 SCHEMA_USERNAME = {"schema": CONF_USERNAME, "default": None}
 SCHEMA_PASSWORD = {"schema": CONF_PASSWORD, "default": None}
 SCHEMA_VERIFY_SSL = {"schema": CONF_VERIFY_SSL, "default": True}
 SCHEMA_SSL_VERIFY_HOSTNAME = {"schema": CONF_SSL_VERIFY_HOSTNAME, "default": True}
 SCHEMA_SSL_CA_PATH: dict[str, Any] = {"schema": CONF_SSL_CA_PATH}
-SCHEMA_API_KEY = {"schema": CONF_API_KEY, "default": None}
 SCHEMA_TIMEOUT = {"schema": CONF_TIMEOUT, "default": 30}
 
 
 TRANSLATION_KEY_STATE = "state"
 TRANSLATION_KEY_ATTRIBUTE = "attribute"
-TRANSLATION_KEY_API_KEY = "api_key"
 TRANSLATION_KEY_BASIC_AUTH = "basic_auth"
 
 
-class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
-    """Handle an Elastic config flow."""
+class ElasticFlowHandler(config_entries.ConfigFlow, domain=OPENSEARCH_DOMAIN):
+    """Handle an OpenSearch config flow."""
 
     VERSION = 7
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
     GATEWAY = Elasticsearch8Gateway
 
     def __init__(self) -> None:
-        """Initialize the Elastic flow."""
+        """Initialize the OpenSearch flow."""
         self._reauth_entry: ConfigEntry | None = None
         self._prospective_config: dict[str, Any] = self.init_data or {}
 
@@ -101,7 +98,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
     ) -> ConfigFlowResult:  # noqa: ARG002
         """Handle a flow initialized by the user. This is the first step in the flow.
 
-        We will gather the url of the elasticsearch cluster and the desired authentication method.
+        We will gather the url of the OpenSearch cluster and the desired authentication method.
         """
 
         if errors is not None:
@@ -121,7 +118,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
                 BASE_LOGGER.debug("Cannot connect", exc_info=True)
                 return await self.async_step_user(errors={CONF_URL: "cannot_connect"})
             except AuthenticationRequired:
-                return await self.async_step_authentication_issues()
+                return await self.async_step_basic_auth()
 
             return self.async_step_complete()
 
@@ -164,7 +161,9 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
 
             except UntrustedCertificate:
                 BASE_LOGGER.debug("Certificate issue", exc_info=True)
-                return await self.async_step_certificate_issues(errors={"base": "untrusted_certificate"})
+                return await self.async_step_certificate_issues(
+                    errors={"base": "untrusted_certificate"}
+                )
 
             except CannotConnect:
                 BASE_LOGGER.debug("Cannot connect", exc_info=True)
@@ -172,7 +171,7 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
 
             except AuthenticationRequired:
                 self._prospective_config.update(user_input)
-                return await self.async_step_authentication_issues()
+                return await self.async_step_basic_auth()
 
         return self.async_show_form(
             step_id="certificate_issues",
@@ -196,35 +195,10 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
         )
 
     @async_log_enter_exit_info
-    async def async_step_authentication_issues(self, user_input: dict | None = None) -> ConfigFlowResult:
-        """We require Authentication information to connect to Elasticsearch."""
-
-        if user_input is not None:
-            if user_input[CONF_AUTHENTICATION_TYPE] == TRANSLATION_KEY_BASIC_AUTH:
-                return await self.async_step_basic_auth()
-            if user_input[CONF_AUTHENTICATION_TYPE] == TRANSLATION_KEY_API_KEY:
-                return await self.async_step_api_key()
-
-        # Show a form where we ask the user if they want to use API Key or Basic Auth
-        return self.async_show_form(
-            step_id="authentication_issues",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(**SCHEMA_AUTHENTICATION_TYPE): SelectSelector(
-                        SelectSelectorConfig(
-                            translation_key="authentication_issues",
-                            options=[TRANSLATION_KEY_API_KEY, TRANSLATION_KEY_BASIC_AUTH],
-                        )
-                    ),
-                }
-            ),
-        )
-
-    @async_log_enter_exit_info
     async def async_step_basic_auth(
         self, user_input: dict | None = None, errors: dict | None = None
     ) -> ConfigFlowResult:
-        """Prompt the user for the settings required to use Basic Authentication against the Elasticsearch cluster."""
+        """Prompt the user for the settings required to use Basic Authentication against the OpenSearch cluster."""
 
         if errors is not None:
             BASE_LOGGER.debug("async_step_basic_auth errors: %s", errors)
@@ -236,15 +210,21 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
                     username=user_input.get(CONF_USERNAME),
                     password=user_input.get(CONF_PASSWORD),
                     verify_certs=self._prospective_config.get(CONF_VERIFY_SSL, True),
-                    verify_hostname=self._prospective_config.get(CONF_SSL_VERIFY_HOSTNAME, True),
+                    verify_hostname=self._prospective_config.get(
+                        CONF_SSL_VERIFY_HOSTNAME, True
+                    ),
                     ca_certs=self._prospective_config.get(CONF_SSL_CA_PATH),
                 )
             except InsufficientPrivileges:
                 BASE_LOGGER.debug("Insufficient Privileges", exc_info=True)
-                return await self.async_step_basic_auth(errors={"base": "insufficient_privileges"})
+                return await self.async_step_basic_auth(
+                    errors={"base": "insufficient_privileges"}
+                )
             except AuthenticationRequired:
                 BASE_LOGGER.debug("Invalid basic authentication", exc_info=True)
-                return await self.async_step_basic_auth(errors={"base": "invalid_basic_auth"})
+                return await self.async_step_basic_auth(
+                    errors={"base": "invalid_basic_auth"}
+                )
 
             # We are authenticated, update settings and complete flow
             self._prospective_config.update(user_input)
@@ -260,49 +240,6 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
                         )
                     ),
                     vol.Required(**SCHEMA_PASSWORD): TextSelector(
-                        TextSelectorConfig(
-                            type=TextSelectorType.PASSWORD,
-                        )
-                    ),
-                },
-            ),
-            errors=errors,
-        )
-
-    @async_log_enter_exit_info
-    async def async_step_api_key(
-        self, user_input: dict | None = None, errors: dict | None = None
-    ) -> ConfigFlowResult:
-        """Prompt the user for the settings required to use API Key Authentication against the Elasticsearch cluster."""
-
-        if errors is not None:
-            BASE_LOGGER.debug("async_step_api_key errors: %s", errors)
-
-        if user_input is not None:
-            try:
-                await Elasticsearch8Gateway.async_init_then_stop(
-                    url=self._prospective_config[CONF_URL],
-                    api_key=user_input.get(CONF_API_KEY),
-                    verify_certs=self._prospective_config.get(CONF_VERIFY_SSL, True),
-                    verify_hostname=self._prospective_config.get(CONF_SSL_VERIFY_HOSTNAME, True),
-                    ca_certs=self._prospective_config.get(CONF_SSL_CA_PATH),
-                )
-            except InsufficientPrivileges:
-                BASE_LOGGER.debug("Insufficient Privileges", exc_info=True)
-                return await self.async_step_api_key(errors={"base": "insufficient_privileges"})
-            except AuthenticationRequired:
-                BASE_LOGGER.debug("Invalid API Key", exc_info=True)
-                return await self.async_step_api_key(errors={"base": "invalid_api_key"})
-
-            # We are authenticated, update settings and complete flow
-            self._prospective_config.update(user_input)
-            return self.async_step_complete()
-
-        return self.async_show_form(
-            step_id="api_key",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(**SCHEMA_API_KEY): TextSelector(
                         TextSelectorConfig(
                             type=TextSelectorType.PASSWORD,
                         )
@@ -328,7 +265,9 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
 
         title: str = self._prospective_config[CONF_URL]
 
-        return self.async_create_entry(title=title, data=self._prospective_config, options=default_options)
+        return self.async_create_entry(
+            title=title, data=self._prospective_config, options=default_options
+        )
 
     @staticmethod
     @callback
@@ -336,7 +275,9 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
         """Get the options flow for this handler."""
         return ElasticOptionsFlowHandler(config_entry)
 
-    async def async_step_reauth(self, user_input: dict | None = None) -> ConfigFlowResult:
+    async def async_step_reauth(
+        self, user_input: dict | None = None
+    ) -> ConfigFlowResult:
         """Handle reauthorization."""
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         # Entry is never None, but mypy doesn't know that
@@ -348,19 +289,20 @@ class ElasticFlowHandler(config_entries.ConfigFlow, domain=ELASTIC_DOMAIN):
 
         if self._prospective_config.get(CONF_USERNAME, None) is not None:
             return await self.async_step_basic_auth(user_input=user_input)
-        if self._prospective_config.get(CONF_API_KEY, None) is not None:
-            return await self.async_step_api_key(user_input=user_input)
 
         return self.async_abort(reason="no_auth")
 
 
 class ElasticOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle Elastic options."""
+    """Handle OpenSearch options."""
 
     default_options: dict[str, Any] = {
         CONF_PUBLISH_FREQUENCY: ONE_MINUTE,
         CONF_POLLING_FREQUENCY: ONE_MINUTE,
-        CONF_CHANGE_DETECTION_TYPE: [StateChangeType.STATE.value, StateChangeType.ATTRIBUTE.value],
+        CONF_CHANGE_DETECTION_TYPE: [
+            StateChangeType.STATE.value,
+            StateChangeType.ATTRIBUTE.value,
+        ],
         CONF_INCLUDE_TARGETS: False,
         CONF_EXCLUDE_TARGETS: False,
         CONF_TARGETS_TO_INCLUDE: {},
@@ -369,11 +311,11 @@ class ElasticOptionsFlowHandler(config_entries.OptionsFlow):
     }
 
     def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize Elastic options flow."""
+        """Initialize OpenSearch options flow."""
         self.options = dict(config_entry.options)
 
     async def async_step_init(self, user_input: dict | None = None) -> ConfigFlowResult:
-        """Manage the Elastic options."""
+        """Manage the OpenSearch options."""
 
         return await self.async_step_options(user_input=user_input)
 

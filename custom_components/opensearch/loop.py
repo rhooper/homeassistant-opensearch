@@ -12,7 +12,13 @@ from .logger import LOGGER as BASE_LOGGER
 class LoopHandler:
     """Handle a loop for a given function."""
 
-    def __init__(self, func: typing.Callable, name: str, frequency: int, log: Logger = BASE_LOGGER) -> None:
+    def __init__(
+        self,
+        func: typing.Callable,
+        name: str,
+        frequency: int,
+        log: Logger = BASE_LOGGER,
+    ) -> None:
         """Initialize the loop handler."""
         self._func: typing.Callable = func
 
@@ -93,7 +99,9 @@ class LoopHandler:
             try:
                 await self._func()
             except Exception:
-                self._log.debug("Unexpected error in loop handler: %s", self._name, exc_info=True)
+                self._log.debug(
+                    "Unexpected error in loop handler: %s", self._name, exc_info=True
+                )
                 self._log.error("Unexpected error in loop handler: %s", self._name)
                 self.stop()
                 raise

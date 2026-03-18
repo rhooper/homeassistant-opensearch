@@ -4,9 +4,9 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from custom_components.elasticsearch import const as compconst
-from custom_components.elasticsearch import utils
-from custom_components.elasticsearch.entity_details import (
+from custom_components.opensearch import const as compconst
+from custom_components.opensearch import utils
+from custom_components.opensearch.entity_details import (
     ExtendedDeviceEntry,
     ExtendedEntityDetails,
     ExtendedRegistryEntry,
@@ -22,7 +22,7 @@ async def mock_extended_registry_fixture():
     mock_extended_registry = MagicMock(spec=ExtendedRegistryEntry)
 
     with patch(
-        "custom_components.elasticsearch.entity_details.ExtendedRegistryEntry",
+        "custom_components.opensearch.entity_details.ExtendedRegistryEntry",
         return_value=mock_extended_registry,
     ) as mock:
         yield mock
@@ -58,13 +58,19 @@ class Test_ExtendedEntityDetails:
         """Test retrieving extended details on an entity with no device."""
         details.async_get(entity_id)
 
-        mock_extended_registry.assert_called_once_with(details=details, entity=entity, device=None)
+        mock_extended_registry.assert_called_once_with(
+            details=details, entity=entity, device=None
+        )
 
-    async def test_get_entity_with_device(self, entity, entity_id, device, details, mock_extended_registry):
+    async def test_get_entity_with_device(
+        self, entity, entity_id, device, details, mock_extended_registry
+    ):
         """Test retrieving extended details on an entity with a device attached."""
         details.async_get(entity_id)
 
-        mock_extended_registry.assert_called_once_with(details=details, entity=entity, device=device)
+        mock_extended_registry.assert_called_once_with(
+            details=details, entity=entity, device=device
+        )
 
     async def test_get_entity_with_missing_device(
         self, entity, entity_id, device, details, mock_extended_registry
@@ -80,7 +86,9 @@ class Test_ExtendedEntityDetails:
             entity_id,
         )
 
-        mock_extended_registry.assert_called_once_with(details=details, entity=entity, device=None)
+        mock_extended_registry.assert_called_once_with(
+            details=details, entity=entity, device=None
+        )
 
     async def test_get_entity_missing(self, details, mock_extended_registry):
         """Test retrieving extended details on an entity which is missing from the registry."""
@@ -118,7 +126,9 @@ class Test_ExtendedRegistryEntry:
         device_labels,
     ):
         """Create an ExtendedRegistryEntry instance."""
-        extended_entity = ExtendedRegistryEntry(details=details, entity=entity, device=device)
+        extended_entity = ExtendedRegistryEntry(
+            details=details, entity=entity, device=device
+        )
 
         assert extended_entity is not None
         assert extended_entity._entity == entity
@@ -185,7 +195,9 @@ class Test_ExtendedRegistryEntry:
         device_labels,
     ):
         """Create an ExtendedRegistryEntry instance."""
-        extended_entity = ExtendedRegistryEntry(details=details, entity=entity, device=device)
+        extended_entity = ExtendedRegistryEntry(
+            details=details, entity=entity, device=device
+        )
 
         assert extended_entity is not None
         assert extended_entity._entity == entity
@@ -208,7 +220,9 @@ class Test_ExtendedRegistryEntry:
 
     async def test_to_dict(self, details, entity, device, snapshot):
         """Create an ExtendedRegistryEntry instance."""
-        extended_entity = ExtendedRegistryEntry(details=details, entity=entity, device=device)
+        extended_entity = ExtendedRegistryEntry(
+            details=details, entity=entity, device=device
+        )
 
         assert extended_entity is not None
 
@@ -240,7 +254,9 @@ class Test_ExtendedRegistryEntry:
     ):
         """Test our handling of the name and original_name properties."""
 
-        extended_entity = ExtendedRegistryEntry(details=details, entity=entity, device=None)
+        extended_entity = ExtendedRegistryEntry(
+            details=details, entity=entity, device=None
+        )
 
         assert extended_entity._entity.original_name == entity_original_name
         assert extended_entity._entity.name == entity_name
@@ -277,9 +293,14 @@ class Test_ExtendedRegistryEntry:
     ):
         """Test our handling of the device_class and original_device_class properties."""
 
-        extended_entity = ExtendedRegistryEntry(details=details, entity=entity, device=None)
+        extended_entity = ExtendedRegistryEntry(
+            details=details, entity=entity, device=None
+        )
 
-        assert extended_entity._entity.original_device_class == entity_original_device_class
+        assert (
+            extended_entity._entity.original_device_class
+            == entity_original_device_class
+        )
         assert extended_entity._entity.device_class == entity_device_class
 
         assert extended_entity.device_class == expected_device_class
@@ -307,7 +328,9 @@ class Test_ExtendedRegistryEntry:
         device_labels,
     ):
         """Test the entity details edge cases."""
-        entry_dict = ExtendedRegistryEntry(details=details, entity=entity, device=device).to_dict()
+        entry_dict = ExtendedRegistryEntry(
+            details=details, entity=entity, device=device
+        ).to_dict()
 
         document = utils.flatten_dict(entry_dict)
 
@@ -338,7 +361,9 @@ class Test_ExtendedRegistryEntry:
         assert document.pop("device.area.name", None) == device_area_name
         assert document.pop("device.area.id", None) == name_to_id(device_area_name)
         assert document.pop("device.area.floor.name", None) == device_floor_name
-        assert document.pop("device.area.floor.id", None) == name_to_id(device_floor_name)
+        assert document.pop("device.area.floor.id", None) == name_to_id(
+            device_floor_name
+        )
         assert document.pop("device.labels", None) == device_labels
 
         # Ensure that remaining keys are trimmable

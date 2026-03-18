@@ -4,10 +4,10 @@ from enum import Enum
 from types import MappingProxyType
 from typing import Any
 
-DOMAIN: str = "elasticsearch"
-ELASTIC_DOMAIN: str = "elasticsearch"
+DOMAIN: str = "opensearch"
+OPENSEARCH_DOMAIN: str = "opensearch"
 
-ELASTIC_MINIMUM_VERSION: tuple[int, int] = (8, 14)
+OPENSEARCH_MINIMUM_VERSION: tuple[int, int] = (2, 0)
 
 CONF_PUBLISH_FREQUENCY: str = "publish_frequency"
 CONF_POLLING_FREQUENCY: str = "polling_frequency"
@@ -39,7 +39,9 @@ DATASTREAM_DATASET_PREFIX: str = "homeassistant"
 DATASTREAM_NAMESPACE: str = "default"
 
 # Set to match the datastream prefix name
-DATASTREAM_METRICS_INDEX_TEMPLATE_NAME: str = DATASTREAM_TYPE + "-" + DATASTREAM_DATASET_PREFIX
+DATASTREAM_METRICS_INDEX_TEMPLATE_NAME: str = (
+    DATASTREAM_TYPE + "-" + DATASTREAM_DATASET_PREFIX
+)
 
 PUBLISH_REASON_POLLING: str = "Polling"
 PUBLISH_REASON_STATE_CHANGE: str = "State change"
@@ -69,7 +71,7 @@ ES_CHECK_PERMISSIONS_DATASTREAM: MappingProxyType[str, Any] = MappingProxyType(
 
 
 class StateChangeType(Enum):
-    """Elasticsearch State Change Types constants."""
+    """OpenSearch State Change Types constants."""
 
     STATE = "state"
     ATTRIBUTE = "attribute"
@@ -85,13 +87,10 @@ class StateChangeType(Enum):
 
 
 class CAPABILITIES:
-    """Elasticsearch CAPABILITIES constants."""
+    """OpenSearch CAPABILITIES constants."""
 
     MAJOR: str = "MAJOR"
     MINOR: str = "MINOR"
-    BUILD_FLAVOR: str = "BUILD_FLAVOR"
-    SERVERLESS: str = "SERVERLESS"
-    OSS: str = "OSS"
     SUPPORTED: str = "SUPPORTED"
     TIMESERIES_DATASTREAM: str = "TIMESERIES_DATASTREAM"
     IGNORE_MISSING_COMPONENT_TEMPLATES: str = "IGNORE_MISSING_COMPONENT_TEMPLATES"

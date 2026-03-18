@@ -1,4 +1,4 @@
-"""Support for sending event data to an Elasticsearch cluster."""
+"""Support for sending event data to an OpenSearch cluster."""
 
 from __future__ import annotations
 
@@ -6,20 +6,24 @@ from logging import Logger
 from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, IntegrationError
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryNotReady,
+    IntegrationError,
+)
 from homeassistant.loader import (
     async_get_integration,
 )
 
-from custom_components.elasticsearch.config_flow import ElasticFlowHandler
-from custom_components.elasticsearch.const import ELASTIC_DOMAIN
-from custom_components.elasticsearch.errors import (
+from custom_components.opensearch.config_flow import ElasticFlowHandler
+from custom_components.opensearch.const import OPENSEARCH_DOMAIN
+from custom_components.opensearch.errors import (
     AuthenticationRequired,
     CannotConnect,
     ESIntegrationException,
     UnsupportedVersion,
 )
-from custom_components.elasticsearch.logger import (
+from custom_components.opensearch.logger import (
     LOGGER,
     async_log_enter_exit_debug,
     async_log_enter_exit_info,
@@ -36,7 +40,9 @@ type ElasticIntegrationConfigEntry = ConfigEntry[ElasticIntegration]
 
 
 @async_log_enter_exit_info
-async def async_setup_entry(hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry
+) -> bool:
     """Set up integration via config flow."""
 
     # Create an specific logger for this config entry
@@ -47,7 +53,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ElasticIntegratio
     _logger.info("Initializing integration v%s for %s", version, config_entry.title)
 
     try:
-        integration = ElasticIntegration(hass=hass, config_entry=config_entry, log=_logger)
+        integration = ElasticIntegration(
+            hass=hass, config_entry=config_entry, log=_logger
+        )
         await integration.async_init()
     except (UnsupportedVersion, CannotConnect) as err:
         raise ConfigEntryNotReady(err) from err
@@ -65,7 +73,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ElasticIntegratio
 
 
 @async_log_enter_exit_info
-async def async_unload_entry(hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry
+) -> bool:
     """Teardown integration."""
 
     if (
@@ -78,22 +88,27 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ElasticIntegrati
         await integration.async_shutdown()
     else:
         LOGGER.warning(
-            "Called to unload config entry %s, but it doesn't appear to be loaded", config_entry.title
+            "Called to unload config entry %s, but it doesn't appear to be loaded",
+            config_entry.title,
         )
 
     return True
 
 
 @async_log_enter_exit_debug
-async def async_migrate_entry(hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry) -> bool:
+async def async_migrate_entry(
+    hass: HomeAssistant, config_entry: ElasticIntegrationConfigEntry
+) -> bool:
     """Handle migration of config entry."""
     if config_entry.version == ElasticFlowHandler.VERSION:
         return True
 
     try:
-        migrated_data, migrated_options, migrated_version = migrate_data_and_options_to_version(
-            config_entry,
-            ElasticFlowHandler.VERSION,
+        migrated_data, migrated_options, migrated_version = (
+            migrate_data_and_options_to_version(
+                config_entry,
+                ElasticFlowHandler.VERSION,
+            )
         )
     except Exception:  # noqa: BLE001
         LOGGER.exception(
@@ -115,7 +130,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ElasticIntegrat
 
 async def get_integration_version(hass) -> str:
     """Return the version of the integration."""
-    integration = await async_get_integration(hass, ELASTIC_DOMAIN)
+    integration = await async_get_integration(hass, OPENSEARCH_DOMAIN)
 
     if integration is None or integration.version is None:
         return "Unknown"
@@ -149,7 +164,9 @@ def migrate_data_and_options_to_version(
 
     end_version = current_version
 
-    LOGGER.info("Migration from version %s to version %s successful", begin_version, end_version)
+    LOGGER.info(
+        "Migration from version %s to version %s successful", begin_version, end_version
+    )
 
     return data, options, end_version
 
@@ -303,7 +320,9 @@ def migrate_to_version_7(data: dict, options: dict) -> tuple[dict, dict]:
 
     # Lowercase values in array options["change_detection_type"]
     if "change_detection_type" in options:
-        options["change_detection_type"] = [x.lower() for x in options["change_detection_type"]]
+        options["change_detection_type"] = [
+            x.lower() for x in options["change_detection_type"]
+        ]
 
     for key in keys_to_remove:
         if key in options:

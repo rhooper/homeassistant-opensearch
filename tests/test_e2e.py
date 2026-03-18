@@ -1,4 +1,4 @@
-"""Tests for the Elasticsearch integration initialization."""
+"""Tests for the OpenSearch integration initialization."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.elasticsearch.config_flow import ElasticFlowHandler
+from custom_components.opensearch.config_flow import ElasticFlowHandler
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
 from pytest_homeassistant_custom_component.common import (
@@ -19,7 +19,7 @@ from tests import const as testconst
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-MODULE = "custom_components.elasticsearch"
+MODULE = "custom_components.opensearch"
 
 
 @pytest.fixture(autouse=True, name="freeze_time")
@@ -48,7 +48,7 @@ class Test_Normal_Configuration:
     ):
         """Test the full integration setup and execution to publishing."""
 
-        es_mock_builder.as_elasticsearch_8_17().with_correct_permissions().without_index_template().respond_to_bulk(
+        es_mock_builder.as_opensearch_2_17().with_correct_permissions().without_index_template().respond_to_bulk(
             status=200
         )
 
@@ -59,7 +59,7 @@ class Test_Normal_Configuration:
         assert await integration_setup() is True
         assert config_entry.state is ConfigEntryState.LOADED
 
-        assert es_mock_builder.mocker.call_count == 9
+        assert es_mock_builder.mocker.call_count == 6
         assert es_mock_builder.get_calls() == snapshot
 
         # Queue an entity state change and check that it is published with item level reporting
@@ -69,7 +69,7 @@ class Test_Normal_Configuration:
         config_entry.runtime_data._gateway._logger.info = MagicMock()
         await config_entry.runtime_data._pipeline_manager._publisher.publish()
 
-        assert es_mock_builder.mocker.call_count == 11
+        assert es_mock_builder.mocker.call_count == 8
         config_entry.runtime_data._gateway._logger.error.assert_not_called()
 
         assert snapshot == {
@@ -88,9 +88,11 @@ class Test_Normal_Configuration:
         snapshot: SnapshotAssertion,
     ):
         """Test the full integration setup and execution with an error during the check connection step of publishing."""
-        es_mock_builder.as_elasticsearch_8_17(
-            fail_after=5
-        ).with_correct_permissions().without_index_template().respond_to_bulk(status=200)
+        es_mock_builder.as_opensearch_2_17(
+            fail_after=4
+        ).with_correct_permissions().without_index_template().respond_to_bulk(
+            status=200
+        )
 
         # Queue an entity state change
         hass.states.async_set(entity.entity_id, "value")
@@ -99,13 +101,13 @@ class Test_Normal_Configuration:
         assert await integration_setup() is True
         assert config_entry.state is ConfigEntryState.LOADED
 
-        assert es_mock_builder.mocker.call_count == 9
+        assert es_mock_builder.mocker.call_count == 6
 
         await config_entry.runtime_data._pipeline_manager._publisher.publish()
 
         # We check the connection while publishing and if the ping fails we do not
-        # perform the bulk request, so this stays at 10
-        assert es_mock_builder.mocker.call_count == 10
+        # perform the bulk request, so this stays at 7
+        assert es_mock_builder.mocker.call_count == 7
 
         assert es_mock_builder.get_calls() == snapshot
 
@@ -122,7 +124,7 @@ class Test_Normal_Configuration:
         snapshot: SnapshotAssertion,
     ):
         """Test the full integration setup and execution up until a publishing error."""
-        es_mock_builder.as_elasticsearch_8_17().with_correct_permissions().without_index_template().respond_to_bulk(
+        es_mock_builder.as_opensearch_2_17().with_correct_permissions().without_index_template().respond_to_bulk(
             status=status_code
         )
 
@@ -133,7 +135,7 @@ class Test_Normal_Configuration:
         assert await integration_setup() is True
         assert config_entry.state is ConfigEntryState.LOADED
 
-        assert es_mock_builder.mocker.call_count == 9
+        assert es_mock_builder.mocker.call_count == 6
         assert es_mock_builder.get_calls() == snapshot
 
     async def test_setup_to_bulk_item_level_error(
@@ -148,7 +150,7 @@ class Test_Normal_Configuration:
     ):
         """Test the full integration setup and execution up until an item-level error in a bulk request."""
 
-        es_mock_builder.as_elasticsearch_8_17().with_correct_permissions().without_index_template().respond_to_bulk_with_item_level_error()
+        es_mock_builder.as_opensearch_2_17().with_correct_permissions().without_index_template().respond_to_bulk_with_item_level_error()
 
         # Queue an entity state change
         hass.states.async_set(entity.entity_id, "value")
@@ -188,38 +190,7 @@ class Test_Normal_Configuration:
         assert config_entry.state is ConfigEntryState.SETUP_ERROR
         assert (
             config_entry.reason
-            == "Error retrieving cluster info from Elasticsearch. Authentication error connecting to Elasticsearch (type=security_exception; reason=missing authentication credentials for REST request [/?pretty])"
-        )
-
-    async def test_setup_authorization_failure(
-        self, hass: HomeAssistant, integration_setup, es_mock_builder, config_entry
-    ):
-        """Test the scenario where we fail authorization during setup."""
-
-        es_mock_builder.as_elasticsearch_8_17().with_incorrect_permissions()
-
-        assert await integration_setup() is False
-
-        assert config_entry.version == ElasticFlowHandler.VERSION
-
-        assert config_entry.state is ConfigEntryState.SETUP_ERROR
-        assert config_entry.reason == "could not authenticate"
-
-    async def test_setup_fake_elasticsearch_error(
-        self, hass: HomeAssistant, integration_setup, es_mock_builder, config_entry
-    ):
-        """Test the scenario where we are not connecting to an authentic Elasticsearch endpoint."""
-
-        es_mock_builder.as_fake_elasticsearch()
-
-        assert await integration_setup() is False
-
-        assert config_entry.version == ElasticFlowHandler.VERSION
-
-        assert config_entry.state is ConfigEntryState.SETUP_RETRY
-        assert (
-            config_entry.reason
-            == "Error retrieving cluster info from Elasticsearch. Unsupported product error connecting to Elasticsearch"
+            == "Error retrieving cluster info from OpenSearch. Authentication error connecting to OpenSearch"
         )
 
     async def test_setup_server_error(
@@ -236,7 +207,7 @@ class Test_Normal_Configuration:
         assert config_entry.state is ConfigEntryState.SETUP_RETRY
         assert (
             config_entry.reason
-            == "Error retrieving cluster info from Elasticsearch. Error in request to Elasticsearch: 500"
+            == "Error retrieving cluster info from OpenSearch. Error in request to OpenSearch: 500"
         )
 
     async def test_setup_server_timeout(
@@ -253,7 +224,7 @@ class Test_Normal_Configuration:
         assert config_entry.state is ConfigEntryState.SETUP_RETRY
         assert (
             config_entry.reason
-            == "Error retrieving cluster info from Elasticsearch. Connection timeout connecting to Elasticsearch"
+            == "Error retrieving cluster info from OpenSearch. Connection timeout connecting to OpenSearch"
         )
 
     async def test_setup_tls_error(
@@ -270,22 +241,25 @@ class Test_Normal_Configuration:
         assert config_entry.state is ConfigEntryState.SETUP_RETRY
         assert (
             config_entry.reason
-            == "Error retrieving cluster info from Elasticsearch. Could not complete TLS Handshake. Cannot connect to host mock_es_integration:9200 ssl:True [SSLCertVerificationError: ()]"
+            == "Error retrieving cluster info from OpenSearch. Could not complete TLS Handshake. Cannot connect to host mock_es_integration:9200 ssl:True [SSLCertVerificationError: ()]"
         )
 
     async def test_setup_unsupported_error(
         self, hass: HomeAssistant, integration_setup, es_mock_builder, config_entry
     ):
-        """Test the scenario where we connect and find an Elasticsearch node running an unsupported version."""
+        """Test the scenario where we connect and find an OpenSearch node running an unsupported version."""
 
-        es_mock_builder.as_elasticsearch_8_0()
+        es_mock_builder.as_opensearch_1_3()
 
         assert await integration_setup() is False
 
         assert config_entry.version == ElasticFlowHandler.VERSION
 
         assert config_entry.state is ConfigEntryState.SETUP_RETRY
-        assert config_entry.reason == "Elasticsearch version is not supported. Minimum version: (8, 14)"
+        assert (
+            config_entry.reason
+            == "OpenSearch version is not supported. Minimum version: (2, 0)"
+        )
 
 
 class Test_Publish_Disabled:
@@ -308,7 +282,7 @@ class Test_Publish_Disabled:
     ):
         """Test the full integration setup and execution with publishing disabled."""
 
-        es_mock_builder.as_elasticsearch_8_17().with_correct_permissions().without_index_template().respond_to_bulk(
+        es_mock_builder.as_opensearch_2_17().with_correct_permissions().without_index_template().respond_to_bulk(
             status=200
         )
 
@@ -319,7 +293,7 @@ class Test_Publish_Disabled:
         assert await integration_setup() is True
         assert config_entry.state is ConfigEntryState.LOADED
 
-        assert es_mock_builder.mocker.call_count == 7
+        assert es_mock_builder.mocker.call_count == 4
 
 
 class Test_Legacy_To_Current:
@@ -360,7 +334,7 @@ class Test_Legacy_To_Current:
     ):
         """Test the full integration setup with a legacy v1 configuration, migration, and go until publishing."""
 
-        es_mock_builder.as_elasticsearch_8_17().with_correct_permissions().without_index_template().respond_to_bulk(
+        es_mock_builder.as_opensearch_2_17().with_correct_permissions().without_index_template().respond_to_bulk(
             status=200
         )
 
@@ -371,7 +345,7 @@ class Test_Legacy_To_Current:
         assert await integration_setup() is True
         assert config_entry.state is ConfigEntryState.LOADED
 
-        assert es_mock_builder.mocker.call_count == 9
+        assert es_mock_builder.mocker.call_count == 6
 
         assert snapshot == {
             "data": config_entry.data,

@@ -12,7 +12,7 @@ from .logger import LOGGER
 
 @dataclass
 class SystemInfoResult:
-    """System info for use in documents published to Elasticsearch."""
+    """System info for use in documents published to OpenSearch."""
 
     version: str
     arch: str

@@ -1,12 +1,13 @@
 """Tests for the index manager class."""
+
 # noqa: F401 # pylint: disable=redefined-outer-name
 
 from unittest.mock import AsyncMock
 
 import pytest
-from custom_components.elasticsearch.datastreams import index_template
-from custom_components.elasticsearch.es_datastream_manager import DatastreamManager
-from custom_components.elasticsearch.es_gateway import ElasticsearchGateway
+from custom_components.opensearch.datastreams import index_template
+from custom_components.opensearch.es_datastream_manager import DatastreamManager
+from custom_components.opensearch.es_gateway import ElasticsearchGateway
 
 
 @pytest.fixture
@@ -59,7 +60,11 @@ class Test_Initialization:
                 "index_templates": [
                     {
                         "name": "datastream_metrics",
-                        "index_template": {"version": index_template.index_template_definition["version"]},
+                        "index_template": {
+                            "version": index_template.index_template_definition[
+                                "version"
+                            ]
+                        },
                     }
                 ]
             },
@@ -75,7 +80,9 @@ class Test_Initialization:
         """Test initialization of the DatastreamManager with an existing ES cluster that requires an index template update and rollover."""
         datastream_manager._gateway.get_index_template = AsyncMock(
             return_value={
-                "index_templates": [{"name": "datastream_metrics", "index_template": {"version": 1}}]
+                "index_templates": [
+                    {"name": "datastream_metrics", "index_template": {"version": 1}}
+                ]
             },
         )
 

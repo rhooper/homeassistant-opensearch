@@ -1,4 +1,4 @@
-"""datastreams module for Elasticsearch integration."""
+"""datastreams module for OpenSearch integration."""
 
 from .index_template import index_template_definition
 

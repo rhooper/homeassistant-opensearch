@@ -2,7 +2,6 @@
 # name: Test_Common_e2e.Test_Pipeline_Settings.test_config_entry_to_pipeline_settings
   dict({
     'gateway': dict({
-      'api_key': None,
       'ca_certs': None,
       'minimum_privileges': dict({
         'cluster': list([

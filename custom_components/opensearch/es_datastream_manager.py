@@ -1,13 +1,15 @@
-"""Manage Elasticsearch datastreams and index templates.
+"""Manage OpenSearch datastreams and index templates.
 
 This class provides methods to initialize, install, and update
-Elasticsearch index templates for Home Assistant datastreams.
+OpenSearch index templates for Home Assistant datastreams.
 """
 
 from logging import Logger
 
-from custom_components.elasticsearch.datastreams.index_template import index_template_definition
-from custom_components.elasticsearch.es_gateway import ElasticsearchGateway
+from custom_components.opensearch.datastreams.index_template import (
+    index_template_definition,
+)
+from custom_components.opensearch.es_gateway import ElasticsearchGateway
 
 from .const import (
     DATASTREAM_METRICS_INDEX_TEMPLATE_NAME,
@@ -86,7 +88,9 @@ class DatastreamManager:
     @async_log_enter_exit_debug
     async def _update_index_template(self) -> None:
         """Update the specified index template and rollover the indices."""
-        self._logger.info("Updating Index template and rolling over Home Assistant datastreams")
+        self._logger.info(
+            "Updating Index template and rolling over Home Assistant datastreams"
+        )
 
         await self._install_index_template()
 

@@ -1,4 +1,4 @@
-"""Defines the index template for Elasticsearch data streams."""
+"""Defines the index template for OpenSearch data streams."""
 
 from typing import Any
 
@@ -41,28 +41,52 @@ index_template_definition: dict[str, Any] = {
                                 "attributes": {"type": "object", "dynamic": True},
                                 "object": {
                                     "type": "object",
-                                    "properties": {"id": {"type": "keyword", "time_series_dimension": True}},
+                                    "properties": {
+                                        "id": {
+                                            "type": "keyword",
+                                            "time_series_dimension": True,
+                                        }
+                                    },
                                 },
                                 "location": {"type": "geo_point"},
                                 "value": {
                                     "type": "text",
-                                    "fields": {"keyword": {"ignore_above": 1024, "type": "keyword"}},
+                                    "fields": {
+                                        "keyword": {
+                                            "ignore_above": 1024,
+                                            "type": "keyword",
+                                        }
+                                    },
                                 },
                                 "valueas": {
                                     "properties": {
                                         "string": {
                                             "type": "text",
-                                            "fields": {"keyword": {"ignore_above": 1024, "type": "keyword"}},
+                                            "fields": {
+                                                "keyword": {
+                                                    "ignore_above": 1024,
+                                                    "type": "keyword",
+                                                }
+                                            },
                                         },
-                                        "float": {"ignore_malformed": True, "type": "float"},
+                                        "float": {
+                                            "ignore_malformed": True,
+                                            "type": "float",
+                                        },
                                         "boolean": {"type": "boolean"},
                                         "datetime": {"type": "date"},
-                                        "date": {"type": "date", "format": "strict_date"},
+                                        "date": {
+                                            "type": "date",
+                                            "format": "strict_date",
+                                        },
                                         "time": {
                                             "type": "date",
                                             "format": "HH:mm:ss.SSSSSS||time||strict_hour_minute_second||time_no_millis",
                                         },
-                                        "integer": {"ignore_malformed": True, "type": "integer"},
+                                        "integer": {
+                                            "ignore_malformed": True,
+                                            "type": "integer",
+                                        },
                                     }
                                 },
                                 "platform": {"type": "keyword"},
@@ -110,7 +134,10 @@ index_template_definition: dict[str, Any] = {
                         }
                     },
                 },
-                "@timestamp": {"type": "date_nanos", "format": "strict_date_optional_time_nanos"},
+                "@timestamp": {
+                    "type": "date_nanos",
+                    "format": "strict_date_optional_time_nanos",
+                },
                 "tags": {"ignore_above": 1024, "type": "keyword"},
                 "event": {
                     "properties": {
@@ -130,10 +157,16 @@ index_template_definition: dict[str, Any] = {
                         "location": {"type": "geo_point"},
                         "hostname": {"ignore_above": 1024, "type": "keyword"},
                         "name": {"ignore_above": 1024, "type": "keyword"},
-                        "os": {"properties": {"name": {"ignore_above": 1024, "type": "keyword"}}},
+                        "os": {
+                            "properties": {
+                                "name": {"ignore_above": 1024, "type": "keyword"}
+                            }
+                        },
                     }
                 },
-                "ecs": {"properties": {"version": {"ignore_above": 1024, "type": "keyword"}}},
+                "ecs": {
+                    "properties": {"version": {"ignore_above": 1024, "type": "keyword"}}
+                },
             },
         },
         "settings": {

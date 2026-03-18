@@ -5,8 +5,8 @@ import time
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from custom_components.elasticsearch.logger import LOGGER as BASE_LOGGER
-from custom_components.elasticsearch.loop import LoopHandler
+from custom_components.opensearch.logger import LOGGER as BASE_LOGGER
+from custom_components.opensearch.loop import LoopHandler
 
 
 class Test_Initialization:
@@ -82,7 +82,9 @@ class Test_Loop_Handler:
 
         # Start the loop handler in the background, make sure it runs for a short duration
         # then stop it, wait for a short duration, and assert that the loop handler has stopped
-        loop_task = asyncio.ensure_future(loop_handler.start(), loop=asyncio.get_event_loop())
+        loop_task = asyncio.ensure_future(
+            loop_handler.start(), loop=asyncio.get_event_loop()
+        )
         await asyncio.sleep(2)
 
         assert loop_handler._running is True

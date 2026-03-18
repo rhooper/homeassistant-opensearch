@@ -1,9 +1,9 @@
-"""Custom JSON encoder for Elasticsearch."""
+"""Custom JSON encoder for OpenSearch."""
 
 import json
 from typing import Any
 
-from elasticsearch8.serializer import JSONSerializer
+from opensearchpy.serializer import JSONSerializer
 
 
 def convert_set_to_list(data: Any) -> Any:
@@ -15,7 +15,9 @@ def convert_set_to_list(data: Any) -> Any:
         return output
 
     if isinstance(data, dict):
-        return json.dumps({key: convert_set_to_list(value) for key, value in data.items()})
+        return json.dumps(
+            {key: convert_set_to_list(value) for key, value in data.items()}
+        )
 
     if isinstance(data, list):
         return [convert_set_to_list(item) for item in data]
@@ -33,7 +35,11 @@ class Serializer(JSONSerializer):
         """Serialize data to JSON."""
 
         return json.dumps(
-            data, default=self.default, ensure_ascii=False, separators=(",", ":"), cls=Encoder
+            data,
+            default=self.default,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            cls=Encoder,
         ).encode("utf-8", "surrogatepass")
 
     def default(self, data: Any) -> Any:

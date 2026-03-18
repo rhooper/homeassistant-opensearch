@@ -1,5 +1,5 @@
 # pylint: disable=redefined-outer-name
-"""Global fixtures for elastic integration."""
+"""Global fixtures for OpenSearch integration."""
 
 # Fixtures allow you to replace functions with a Mock object. You can perform
 # many options via the Mock to reflect a particular behavior from the original
@@ -29,10 +29,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import attr
 import pytest
 from aiohttp import ClientSession, TCPConnector
-from custom_components.elasticsearch.config_flow import ElasticFlowHandler
+from custom_components.opensearch.config_flow import ElasticFlowHandler
 from freezegun.api import FrozenDateTimeFactory
-
-# import custom_components.elasticsearch  # noqa: F401
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.json import json_dumps
@@ -61,7 +59,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_registry import EntityRegistry
     from homeassistant.helpers.floor_registry import FloorEntry, FloorRegistry
 
-MODULE = "custom_components.elasticsearch"
+MODULE = "custom_components.opensearch"
 logging.getLogger("homeassistant").setLevel(logging.WARNING)
 logging.getLogger("homeassistant.loader").setLevel(logging.ERROR)
 logging.getLogger("pytest_homeassistant_custom_component").setLevel(logging.WARNING)
@@ -88,7 +86,7 @@ async def integration_setup(
 
 @pytest.fixture
 def es_mock_builder() -> Generator[es_mocker, Any, None]:
-    """Fixture to return a builder for mocking Elasticsearch calls."""
+    """Fixture to return a builder for mocking OpenSearch calls."""
 
     mocker = AiohttpClientMocker()
 
@@ -107,11 +105,11 @@ def es_mock_builder() -> Generator[es_mocker, Any, None]:
 
     with (
         mock.patch(
-            "elastic_transport._node._http_aiohttp.aiohttp.ClientSession",
+            "opensearchpy._async.http_aiohttp.aiohttp.ClientSession",
             side_effect=create_session,
         ),
         mock.patch(
-            "elastic_transport._node._http_aiohttp.aiohttp.TCPConnector",
+            "opensearchpy._async.http_aiohttp.aiohttp.TCPConnector",
             side_effect=create_tcpconnector,
         ),
     ):
@@ -187,7 +185,9 @@ async def add_to_hass() -> bool:
 def mock_loop_handler_fixture():
     """Return a mock loop handler that will return."""
     with (
-        patch("custom_components.elasticsearch.es_publish_pipeline.LoopHandler") as loop_handler,
+        patch(
+            "custom_components.opensearch.es_publish_pipeline.LoopHandler"
+        ) as loop_handler,
     ):
         loop_handler.start = AsyncMock()
 
@@ -197,7 +197,9 @@ def mock_loop_handler_fixture():
 @pytest.fixture(autouse=True, name="fix_system_info")
 def fix_system_info_fixture():
     """Return a mock system info."""
-    with mock.patch("custom_components.elasticsearch.es_publish_pipeline.SystemInfo") as system_info:
+    with mock.patch(
+        "custom_components.opensearch.es_publish_pipeline.SystemInfo"
+    ) as system_info:
         system_info_instance = system_info.return_value
         system_info_instance.async_get_system_info = mock.AsyncMock(
             return_value=mock.Mock(
@@ -231,7 +233,7 @@ async def config_entry(
 
     entry = MockConfigEntry(
         title="ES Integration",
-        domain="elasticsearch",
+        domain="opensearch",
         data=data,
         options=options,
         version=version,
@@ -366,7 +368,9 @@ async def device(
         device_registry.async_update_device(device_id=device.id, area_id=device_area.id)
 
     if device_labels is not None and len(device_labels) > 0:
-        device_registry.async_update_device(device_id=device.id, labels={*device_labels})
+        device_registry.async_update_device(
+            device_id=device.id, labels={*device_labels}
+        )
 
     return device_registry.async_get(device.id)
 
@@ -534,10 +538,14 @@ async def entity(
         entity_registry.async_update_entity(entity_id=entity_id, name=entity_name)
 
     if entity_device_class is not None:
-        entity_registry.async_update_entity(entity_id=entity_id, device_class=entity_device_class)
+        entity_registry.async_update_entity(
+            entity_id=entity_id, device_class=entity_device_class
+        )
 
     if entity_labels is not None and len(entity_labels) > 0:
-        entity_registry.async_update_entity(entity_id=entity_id, labels={*entity_labels})
+        entity_registry.async_update_entity(
+            entity_id=entity_id, labels={*entity_labels}
+        )
 
     if entity_area is not None:
         entity_registry.async_update_entity(entity_id=entity_id, area_id=entity_area.id)

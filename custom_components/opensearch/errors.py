@@ -1,14 +1,14 @@
-"""Errors for the Elastic component."""
+"""Errors for the OpenSearch component."""
 
 from homeassistant.exceptions import HomeAssistantError
 
 
 class ESIntegrationException(HomeAssistantError):  # noqa: N818
-    """Base class for Elastic exceptions."""
+    """Base class for OpenSearch exceptions."""
 
 
 class ESIntegrationConnectionException(ESIntegrationException):
-    """Base class for Elasticsearch exceptions."""
+    """Base class for OpenSearch exceptions."""
 
 
 class AuthenticationRequired(ESIntegrationConnectionException):
@@ -40,4 +40,4 @@ class UntrustedCertificate(SSLError):
 
 
 class UnsupportedVersion(ESIntegrationConnectionException):
-    """Connected to an unsupported version of Elasticsearch."""
+    """Connected to an unsupported version of OpenSearch."""

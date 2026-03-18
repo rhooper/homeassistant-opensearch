@@ -1,4 +1,4 @@
-"""Elasticsearch API Call Mocker."""
+"""OpenSearch API Call Mocker."""
 
 from __future__ import annotations
 
@@ -8,10 +8,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 from aiohttp import client_exceptions
-from custom_components.elasticsearch.const import DATASTREAM_METRICS_INDEX_TEMPLATE_NAME
-
-# import custom_components.elasticsearch  # noqa: F401
-# import custom_components.elasticsearch  # noqa: F401
+from custom_components.opensearch.const import DATASTREAM_METRICS_INDEX_TEMPLATE_NAME
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,  # noqa: F401  # noqa: F401
 )
@@ -53,7 +50,7 @@ def self_signed_tls_error():
 
 
 class es_mocker:
-    """Mock builder for Elasticsearch integration tests."""
+    """Mock builder for OpenSearch integration tests."""
 
     mocker: AiohttpClientMocker
     base_url: str = testconst.CONFIG_ENTRY_DATA_URL
@@ -73,7 +70,10 @@ class es_mocker:
         # each mock_call is a tuple of method, url, body, and headers
 
         if not include_headers:
-            return [(method, url, body) for method, url, body, headers in self.mocker.mock_calls]
+            return [
+                (method, url, body)
+                for method, url, body, headers in self.mocker.mock_calls
+            ]
 
         return self.mocker.mock_calls
 
@@ -84,7 +84,7 @@ class es_mocker:
         return self
 
     def with_server_error(self, status=None, exc=None):
-        """Mock Elasticsearch being unreachable."""
+        """Mock OpenSearch being unreachable."""
         if status is None and exc is None:
             self.mocker.get(f"{self.base_url}", status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -105,12 +105,15 @@ class es_mocker:
         return self
 
     def with_server_timeout(self):
-        """Mock Elasticsearch being unreachable."""
+        """Mock OpenSearch being unreachable."""
         self.mocker.get(f"{self.base_url}", exc=client_exceptions.ServerTimeoutError())
         return self
 
     def _add_fail_after(
-        self, success: AiohttpClientMockResponse, failure: AiohttpClientMockResponse, fail_after
+        self,
+        success: AiohttpClientMockResponse,
+        failure: AiohttpClientMockResponse,
+        fail_after,
     ):
         if fail_after is None:
             self.mocker.request(
@@ -137,20 +140,24 @@ class es_mocker:
 
         return self
 
-    def _as_elasticsearch_stateful(
-        self, version_response: dict[str, Any], with_security: bool = True, fail_after=None
+    def _as_opensearch_stateful(
+        self,
+        version_response: dict[str, Any],
+        with_security: bool = True,
+        fail_after=None,
     ) -> es_mocker:
-        """Mock Elasticsearch version."""
+        """Mock OpenSearch version."""
 
         self.base_url = (
-            testconst.CONFIG_ENTRY_DATA_URL if with_security else testconst.CONFIG_ENTRY_DATA_URL_INSECURE
+            testconst.CONFIG_ENTRY_DATA_URL
+            if with_security
+            else testconst.CONFIG_ENTRY_DATA_URL_INSECURE
         )
 
         self._add_fail_after(
             success=AiohttpClientMockResponse(
                 method="GET",
                 url=self.base_url,
-                headers={"x-elastic-product": "Elasticsearch"},
                 json=version_response,
             ),
             failure=AiohttpClientMockResponse(
@@ -161,61 +168,36 @@ class es_mocker:
             fail_after=fail_after,
         )
 
-        self.mocker.get(
-            url=f"{self.base_url}/_xpack/usage",
-            json={
-                "security": {"available": True, "enabled": with_security},
-            },
-        )
-
         return self
 
-    def as_elasticsearch_8_0(self, with_security: bool = True) -> es_mocker:
-        """Mock Elasticsearch 8.0."""
-        return self._as_elasticsearch_stateful(testconst.CLUSTER_INFO_8DOT0_RESPONSE_BODY, with_security)
-
-    def as_elasticsearch_8_17(self, with_security: bool = True, fail_after=None) -> es_mocker:
-        """Mock Elasticsearch 8.17."""
-        return self._as_elasticsearch_stateful(
-            testconst.CLUSTER_INFO_8DOT17_RESPONSE_BODY, with_security, fail_after=fail_after
+    def as_opensearch_1_3(self, with_security: bool = True) -> es_mocker:
+        """Mock OpenSearch 1.3."""
+        return self._as_opensearch_stateful(
+            testconst.CLUSTER_INFO_1DOT3_RESPONSE_BODY, with_security
         )
 
-    def as_elasticsearch_8_14(self, with_security: bool = True):
-        """Mock Elasticsearch 8.14."""
-
-        return self._as_elasticsearch_stateful(testconst.CLUSTER_INFO_8DOT14_RESPONSE_BODY, with_security)
-
-    def as_fake_elasticsearch(self) -> es_mocker:
-        """Mock a fake elasticsearch node response."""
-
-        self.mocker.get(
-            f"{self.base_url}",
-            status=200,
-            # No x-elastic-product header
-            json=testconst.CLUSTER_INFO_8DOT14_RESPONSE_BODY,
+    def as_opensearch_2_0(self, with_security: bool = True) -> es_mocker:
+        """Mock OpenSearch 2.0."""
+        return self._as_opensearch_stateful(
+            testconst.CLUSTER_INFO_2DOT0_RESPONSE_BODY, with_security
         )
 
-        return self
-
-    def as_elasticsearch_serverless(self) -> es_mocker:
-        """Mock Elasticsearch version."""
-
-        self.base_url = testconst.CONFIG_ENTRY_DATA_URL
-
-        self.mocker.get(
-            f"{self.base_url}",
-            status=200,
-            json=testconst.CLUSTER_INFO_SERVERLESS_RESPONSE_BODY,
-            headers={"x-elastic-product": "Elasticsearch"},
+    def as_opensearch_2_17(
+        self, with_security: bool = True, fail_after=None
+    ) -> es_mocker:
+        """Mock OpenSearch 2.17."""
+        return self._as_opensearch_stateful(
+            testconst.CLUSTER_INFO_2DOT17_RESPONSE_BODY,
+            with_security,
+            fail_after=fail_after,
         )
 
-        self.mocker.get(
-            url=f"{self.base_url}/_xpack/usage",
-            status=410,
-            json=testconst.XPACK_USAGE_SERVERLESS_RESPONSE_BODY,
-        )
+    def as_opensearch_2_14(self, with_security: bool = True):
+        """Mock OpenSearch 2.14."""
 
-        return self
+        return self._as_opensearch_stateful(
+            testconst.CLUSTER_INFO_2DOT14_RESPONSE_BODY, with_security
+        )
 
     def with_incorrect_permissions(self):
         """Mock the user being properly authenticated."""
@@ -256,9 +238,13 @@ class es_mocker:
         self.mocker.get(
             f"{self.base_url}/_index_template/{DATASTREAM_METRICS_INDEX_TEMPLATE_NAME}",
             status=200,
-            headers={"x-elastic-product": "Elasticsearch"},
             json={
-                "index_templates": [{"name": "datastream_metrics", "index_template": {"version": version}}]
+                "index_templates": [
+                    {
+                        "name": "datastream_metrics",
+                        "index_template": {"version": version},
+                    }
+                ]
             },
         )
 
@@ -271,14 +257,12 @@ class es_mocker:
         self.mocker.get(
             f"{self.base_url}/_index_template/{DATASTREAM_METRICS_INDEX_TEMPLATE_NAME}",
             status=200,
-            headers={"x-elastic-product": "Elasticsearch"},
             json={},
         )
 
         self.mocker.put(
             f"{self.base_url}/_index_template/{DATASTREAM_METRICS_INDEX_TEMPLATE_NAME}",
             status=200,
-            headers={"x-elastic-product": "Elasticsearch"},
             json={},
         )
         return self
@@ -289,7 +273,6 @@ class es_mocker:
         self.mocker.get(
             f"{self.base_url}/_data_stream/metrics-homeassistant.*",
             status=200,
-            headers={"x-elastic-product": "Elasticsearch"},
             json={
                 "data_streams": [
                     {
@@ -302,10 +285,9 @@ class es_mocker:
             },
         )
 
-        self.mocker.put(
-            f"{self.base_url}/_data_stream/metrics-homeassistant.counter-default/_rollover",
+        self.mocker.post(
+            f"{self.base_url}/metrics-homeassistant.counter-default/_rollover",
             status=200,
-            headers={"x-elastic-product": "Elasticsearch"},
             json={
                 "acknowledged": True,
                 "shards_acknowledged": True,
@@ -317,10 +299,9 @@ class es_mocker:
                 "conditions": {},
             },
         )
-        self.mocker.put(
-            f"{self.base_url}/_data_stream/metrics-homeassistant.sensor-default/_rollover",
+        self.mocker.post(
+            f"{self.base_url}/metrics-homeassistant.sensor-default/_rollover",
             status=200,
-            headers={"x-elastic-product": "Elasticsearch"},
             json={
                 "acknowledged": True,
                 "shards_acknowledged": True,
@@ -338,10 +319,9 @@ class es_mocker:
     def respond_to_bulk_with_item_level_error(self):
         """Mock a bulk response with an item-level error."""
 
-        self.mocker.put(
+        self.mocker.post(
             f"{self.base_url}/_bulk",
             status=200,
-            headers={"x-elastic-product": "Elasticsearch"},
             json=testconst.BULK_ERROR_RESPONSE_BODY,
         )
 
@@ -352,13 +332,12 @@ class es_mocker:
 
         self._add_fail_after(
             success=AiohttpClientMockResponse(
-                method="PUT",
+                method="POST",
                 url=f"{self.base_url}/_bulk",
-                headers={"x-elastic-product": "Elasticsearch"},
                 json=testconst.BULK_SUCCESS_RESPONSE_BODY,
             ),
             failure=AiohttpClientMockResponse(
-                method="PUT",
+                method="POST",
                 url=f"{self.base_url}/_bulk",
                 status=HTTPStatus.INTERNAL_SERVER_ERROR,
             ),

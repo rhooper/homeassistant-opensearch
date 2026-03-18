@@ -225,10 +225,16 @@ class ExtendedEntityDetails:
         self._hass: HomeAssistant = hass
         self._logger: Logger = logger
 
-        self.entity_registry: entity_registry.EntityRegistry = entity_registry.async_get(hass)
-        self.device_registry: device_registry.DeviceRegistry = device_registry.async_get(hass)
+        self.entity_registry: entity_registry.EntityRegistry = (
+            entity_registry.async_get(hass)
+        )
+        self.device_registry: device_registry.DeviceRegistry = (
+            device_registry.async_get(hass)
+        )
         self.area_registry: area_registry.AreaRegistry = area_registry.async_get(hass)
-        self.floor_registry: floor_registry.FloorRegistry = floor_registry.async_get(hass)
+        self.floor_registry: floor_registry.FloorRegistry = floor_registry.async_get(
+            hass
+        )
 
     def async_get(self, entity_id: str) -> ExtendedRegistryEntry:
         """Retrieve extended entity details."""
