@@ -9,16 +9,44 @@ index_template_definition: dict[str, Any] = {
             "dynamic": "false",
             "dynamic_templates": [
                 {
-                    "hass_entity_attributes": {
+                    "hass_numeric_attributes": {
                         "path_match": "hass.entity.attributes.*",
+                        "match_mapping_type": "long",
                         "mapping": {
-                            "type": "text",
-                            "fields": {
-                                "keyword": {"ignore_above": 1024, "type": "keyword"},
-                            },
+                            "type": "float",
+                            "ignore_malformed": True,
                         },
                     }
-                }
+                },
+                {
+                    "hass_double_attributes": {
+                        "path_match": "hass.entity.attributes.*",
+                        "match_mapping_type": "double",
+                        "mapping": {
+                            "type": "float",
+                            "ignore_malformed": True,
+                        },
+                    }
+                },
+                {
+                    "hass_boolean_attributes": {
+                        "path_match": "hass.entity.attributes.*",
+                        "match_mapping_type": "boolean",
+                        "mapping": {
+                            "type": "boolean",
+                        },
+                    }
+                },
+                {
+                    "hass_string_attributes": {
+                        "path_match": "hass.entity.attributes.*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword",
+                            "ignore_above": 1024,
+                        },
+                    }
+                },
             ],
             "properties": {
                 "data_stream": {
@@ -48,43 +76,32 @@ index_template_definition: dict[str, Any] = {
                                     },
                                 },
                                 "location": {"type": "geo_point"},
-                                "value": {
-                                    "type": "text",
-                                    "fields": {
-                                        "keyword": {
-                                            "ignore_above": 1024,
-                                            "type": "keyword",
-                                        }
-                                    },
-                                },
+                                "value": {"type": "keyword"},
                                 "valueas": {
                                     "properties": {
-                                        "string": {
-                                            "type": "text",
-                                            "fields": {
-                                                "keyword": {
-                                                    "ignore_above": 1024,
-                                                    "type": "keyword",
-                                                }
-                                            },
-                                        },
+                                        "string": {"type": "keyword"},
                                         "float": {
-                                            "ignore_malformed": True,
                                             "type": "float",
+                                            "ignore_malformed": True,
                                         },
                                         "boolean": {"type": "boolean"},
-                                        "datetime": {"type": "date"},
+                                        "datetime": {
+                                            "type": "date",
+                                            "ignore_malformed": True,
+                                        },
                                         "date": {
                                             "type": "date",
                                             "format": "strict_date",
+                                            "ignore_malformed": True,
                                         },
                                         "time": {
                                             "type": "date",
                                             "format": "HH:mm:ss.SSSSSS||time||strict_hour_minute_second||time_no_millis",
+                                            "ignore_malformed": True,
                                         },
                                         "integer": {
-                                            "ignore_malformed": True,
                                             "type": "integer",
+                                            "ignore_malformed": True,
                                         },
                                     }
                                 },
@@ -137,29 +154,29 @@ index_template_definition: dict[str, Any] = {
                     "type": "date_nanos",
                     "format": "strict_date_optional_time_nanos",
                 },
-                "tags": {"ignore_above": 1024, "type": "keyword"},
+                "tags": {"type": "keyword", "ignore_above": 1024},
                 "event": {
                     "properties": {
-                        "action": {"type": "keyword", "ignore_above": 1024},
-                        "type": {"ignore_above": 1024, "type": "keyword"},
-                        "kind": {"ignore_above": 1024, "type": "keyword"},
+                        "action": {"type": "keyword"},
+                        "type": {"type": "keyword"},
+                        "kind": {"type": "keyword"},
                     }
                 },
                 "agent": {
                     "properties": {
-                        "version": {"ignore_above": 1024, "type": "keyword"},
+                        "version": {"type": "keyword"},
                     }
                 },
                 "host": {
                     "properties": {
-                        "architecture": {"ignore_above": 1024, "type": "keyword"},
+                        "architecture": {"type": "keyword"},
                         "location": {"type": "geo_point"},
-                        "hostname": {"ignore_above": 1024, "type": "keyword"},
-                        "name": {"ignore_above": 1024, "type": "keyword"},
-                        "os": {"properties": {"name": {"ignore_above": 1024, "type": "keyword"}}},
+                        "hostname": {"type": "keyword"},
+                        "name": {"type": "keyword"},
+                        "os": {"properties": {"name": {"type": "keyword"}}},
                     }
                 },
-                "ecs": {"properties": {"version": {"ignore_above": 1024, "type": "keyword"}}},
+                "ecs": {"properties": {"version": {"type": "keyword"}}},
             },
         },
         "settings": {
@@ -169,5 +186,5 @@ index_template_definition: dict[str, Any] = {
     },
     "priority": 500,
     "data_stream": {},
-    "version": 8,
+    "version": 9,
 }
