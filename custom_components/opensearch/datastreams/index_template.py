@@ -24,7 +24,7 @@ index_template_definition: dict[str, Any] = {
                 "data_stream": {
                     "properties": {
                         "type": {"type": "constant_keyword", "value": "metrics"},
-                        "dataset": {"type": "constant_keyword", "value": "homeassistant"},
+                        "dataset": {"type": "constant_keyword"},
                         "namespace": {"type": "constant_keyword", "value": "default"},
                     }
                 },
@@ -169,5 +169,5 @@ index_template_definition: dict[str, Any] = {
     },
     "priority": 500,
     "data_stream": {},
-    "version": 7,
+    "version": 8,
 }
