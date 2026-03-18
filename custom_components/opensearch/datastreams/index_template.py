@@ -24,7 +24,7 @@ index_template_definition: dict[str, Any] = {
                 "data_stream": {
                     "properties": {
                         "type": {"type": "constant_keyword", "value": "metrics"},
-                        "dataset": {"type": "constant_keyword"},
+                        "dataset": {"type": "keyword"},
                         "namespace": {"type": "constant_keyword", "value": "default"},
                     }
                 },
